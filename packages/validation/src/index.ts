@@ -4,6 +4,9 @@ import type { ValidationReport, VoiceProfile } from "@proxy/domain";
 const profileIdSchema = z.string().regex(/^profile:/, "Profile IDs must start with profile:");
 const providerIdSchema = z.string().regex(/^provider:/, "Provider IDs must start with provider:");
 const timestampSchema = z.number().int().nonnegative();
+const portableProfileIdSchema = z
+  .string()
+  .regex(/^[a-z0-9]+(?:[-_][a-z0-9]+)*$/, "Portable profile IDs should be simple slug values.");
 
 export const profileMetadataSchema = z.object({
   id: profileIdSchema,
@@ -12,6 +15,16 @@ export const profileMetadataSchema = z.object({
   tags: z.array(z.string().min(1)).default([]),
   createdAt: timestampSchema,
   updatedAt: timestampSchema
+});
+
+export const portableProfileArtifactSchema = z.object({
+  version: z.literal(1),
+  id: portableProfileIdSchema,
+  name: z.string().min(1),
+  description: z.string().min(1),
+  tone: z.string().min(1),
+  bannedPhrases: z.array(z.string().min(1)).default([]),
+  styleRules: z.array(z.string().min(1)).default([])
 });
 
 export const generateDraftRequestSchema = z.object({
@@ -41,6 +54,7 @@ export const providerConfigSchema = z.object({
 });
 
 export type ProfileMetadataInput = z.infer<typeof profileMetadataSchema>;
+export type PortableProfileArtifactInput = z.infer<typeof portableProfileArtifactSchema>;
 export type GenerateDraftRequestInput = z.infer<typeof generateDraftRequestSchema>;
 export type ValidationResultInput = z.infer<typeof validationResultSchema>;
 export type ProviderConfigInput = z.infer<typeof providerConfigSchema>;
@@ -49,6 +63,9 @@ export const rewrittenOutputSchema = z.string().trim().min(1).max(600);
 
 export const parseGenerateDraftRequest = (input: unknown) =>
   generateDraftRequestSchema.safeParse(input);
+
+export const parsePortableProfileArtifact = (input: unknown) =>
+  portableProfileArtifactSchema.safeParse(input);
 
 export const validateRewrittenOutput = (
   output: string,

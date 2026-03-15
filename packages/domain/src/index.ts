@@ -63,10 +63,16 @@ export interface RewriteStepReport {
   note: string;
 }
 
+export interface RewriteTraceEntry {
+  kind: "removed_phrase" | "tone_shift" | "tightened_wording" | "structure_change";
+  message: string;
+}
+
 export interface RewriteReport {
   original: string;
   rewritten: string;
   changesApplied: string[];
+  trace: RewriteTraceEntry[];
   appliedSteps: RewriteStepReport[];
   summary: string;
   finalText: string;

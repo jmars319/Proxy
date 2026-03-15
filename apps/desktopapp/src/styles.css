@@ -207,7 +207,8 @@ textarea {
 }
 
 .detail-stack,
-.change-list {
+.change-list,
+.trace-list {
   margin: 0;
   padding: 0;
   list-style: none;
@@ -311,6 +312,41 @@ textarea {
 .change-list-danger li {
   background: rgba(171, 103, 66, 0.1);
   color: #7f4a2a;
+}
+
+.trace-list {
+  display: grid;
+  gap: 10px;
+}
+
+.trace-item {
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(35, 43, 51, 0.06);
+}
+
+.trace-item p {
+  margin: 8px 0 0;
+  color: #273038;
+  line-height: 1.6;
+}
+
+.trace-item-empty p {
+  margin-top: 0;
+  color: #5b6772;
+}
+
+.trace-kind {
+  display: inline-flex;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(223, 231, 219, 0.82);
+  color: #50614f;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .status-row {

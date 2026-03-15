@@ -1,12 +1,13 @@
 import { SafeAreaView, ScrollView, StyleSheet, Text, View } from "react-native";
 import { APP_NAME } from "@proxy/config";
-import { defaultProfileDocument } from "@proxy/profiles";
 import { runRewritePipeline } from "@proxy/rewrite-engine";
 
-const profile = defaultProfileDocument.profile;
 const preview = runRewritePipeline("  Mobile is scaffolded and ready for future activation  ", {
-  profileTone: profile.tone,
-  hardConstraints: profile.hardConstraints
+  profileTone: "clear, calm, direct",
+  hardConstraints: [
+    "Do not let provider voice override the profile.",
+    "Do not bypass validation before output is shown."
+  ]
 });
 
 export default function App() {
@@ -24,7 +25,9 @@ export default function App() {
 
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Current profile</Text>
-          <Text style={styles.cardBody}>{profile.metadata.name}</Text>
+          <Text style={styles.cardBody}>
+            Desktop currently owns the portable default profile artifact.
+          </Text>
         </View>
 
         <View style={styles.card}>

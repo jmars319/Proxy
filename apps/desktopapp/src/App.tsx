@@ -1,7 +1,7 @@
 import { Fragment, useState, type FormEvent } from "react";
 import { APP_NAME, REPO_NAME } from "@proxy/config";
-import type { RewriteReport, ValidationReport } from "@proxy/domain";
-import { loadDefaultProfile } from "@proxy/profiles";
+import type { RewriteReport, ValidationReport, VoiceProfile } from "@proxy/domain";
+import { DEFAULT_PROFILE_ARTIFACT_PATH, loadDefaultProfile } from "@proxy/profiles";
 import { MockProvider } from "@proxy/providers";
 import { rewriteDraft } from "@proxy/rewrite-engine";
 import { SectionCard } from "@proxy/ui";
@@ -9,11 +9,11 @@ import { validateRewrittenOutput } from "@proxy/validation";
 
 const defaultPrompt =
   "Explain why clear communication matters when using AI tools for everyday work.";
-const profile = loadDefaultProfile();
 const provider = new MockProvider();
 
 interface PipelineSnapshot {
   prompt: string;
+  profile: VoiceProfile;
   rawDraft: string;
   rewrite: RewriteReport;
   validation: ValidationReport;
@@ -32,6 +32,7 @@ const getFinalOutput = (rewrite: RewriteReport, validation: ValidationReport): s
 
 const buildPipelineStages = (
   prompt: string,
+  profile: VoiceProfile,
   pipeline: PipelineSnapshot | null
 ): PipelineStage[] => [
   {
@@ -48,8 +49,8 @@ const buildPipelineStages = (
     label: "Rewrite Engine",
     text: pipeline?.rewrite.rewritten ?? "Rewrite output appears after the provider draft.",
     note: pipeline
-      ? `${pipeline.rewrite.changesApplied.length} changes applied using the active profile.`
-      : "Deterministic local rewrite pass."
+      ? `${pipeline.rewrite.trace.length} rewrite notes explain how the profile shaped the draft.`
+      : `Deterministic local rewrite pass using the "${profile.metadata.name}" profile.`
   },
   {
     label: "Validation",
@@ -72,6 +73,7 @@ const buildPipelineStages = (
 ];
 
 export default function App() {
+  const defaultProfile = loadDefaultProfile();
   const [prompt, setPrompt] = useState(defaultPrompt);
   const [pipeline, setPipeline] = useState<PipelineSnapshot | null>(null);
   const [isRunning, setIsRunning] = useState(false);
@@ -91,11 +93,13 @@ export default function App() {
 
     try {
       const draft = await provider.generateDraft(trimmedPrompt);
+      const profile = loadDefaultProfile();
       const rewrite = rewriteDraft(draft.text, profile);
       const validation = validateRewrittenOutput(rewrite.rewritten, profile);
 
       setPipeline({
         prompt: trimmedPrompt,
+        profile,
         rawDraft: draft.text,
         rewrite,
         validation,
@@ -109,17 +113,19 @@ export default function App() {
     }
   };
 
-  const stages = buildPipelineStages(prompt, pipeline);
+  const activeProfile = pipeline?.profile ?? defaultProfile;
+  const stages = buildPipelineStages(prompt, activeProfile, pipeline);
 
   return (
     <div className="workspace-shell">
       <header className="workspace-hero">
         <div className="hero-copy">
-          <span className="eyebrow">Proxy v0.1</span>
-          <h1>First end-to-end rewrite pipeline</h1>
+          <span className="eyebrow">Proxy v0.2</span>
+          <h1>Rewrite trace and portable profile artifacts</h1>
           <p>
             Prompt in. Generic provider draft out. Then Proxy rewrites it with the active voice
-            profile, validates it, and only then shows the final result.
+            profile artifact, validates it, and shows why the final output sounds more like the
+            profile than the provider draft did.
           </p>
         </div>
         <div className="hero-badges" aria-label="Flow summary">
@@ -168,21 +174,25 @@ export default function App() {
         <div className="span-7">
           <SectionCard
             eyebrow="Active Profile"
-            title={profile.metadata.name}
-            description="The profile owns the rewrite tone and the constraints that must survive the provider handoff."
+            title={activeProfile.metadata.name}
+            description="Profiles are portable artifacts. Proxy loads the artifact, validates it, then turns it into the richer domain shape used by the rewrite pipeline."
           >
             <dl className="detail-stack">
               <div>
                 <dt>Tone</dt>
-                <dd>{profile.tone}</dd>
+                <dd>{activeProfile.tone}</dd>
               </div>
               <div>
                 <dt>Banned phrases</dt>
-                <dd>{profile.bannedPhrases.join(", ")}</dd>
+                <dd>{activeProfile.bannedPhrases.join(", ")}</dd>
               </div>
               <div>
                 <dt>Style rules</dt>
-                <dd>{profile.styleRules.join(", ")}</dd>
+                <dd>{activeProfile.styleRules.join(", ")}</dd>
+              </div>
+              <div>
+                <dt>Artifact path</dt>
+                <dd>{DEFAULT_PROFILE_ARTIFACT_PATH}</dd>
               </div>
             </dl>
           </SectionCard>
@@ -229,7 +239,7 @@ export default function App() {
           <SectionCard
             eyebrow="Rewrite Engine"
             title="Rewritten output"
-            description="The rewrite pass removes banned phrases, strips apology language, and tightens wording."
+            description="The rewrite pass removes banned phrases, shifts tone, tightens wording, and shortens structure where the profile asks for it."
           >
             <div className="output-panel">
               {pipeline?.rewrite.rewritten ?? "Rewrite output appears after the provider draft."}
@@ -244,7 +254,30 @@ export default function App() {
           </SectionCard>
         </div>
 
-        <div className="span-4">
+        <div className="span-7">
+          <SectionCard
+            eyebrow="Rewrite Trace"
+            title="Why this sounds like the profile"
+            description="This is a user-facing transparency layer, not debug logging. It explains what Proxy changed and why."
+          >
+            <ul className="trace-list">
+              {pipeline?.rewrite.trace.length ? (
+                pipeline.rewrite.trace.map((entry, index) => (
+                  <li key={`${entry.kind}-${entry.message}-${index}`} className="trace-item">
+                    <span className="trace-kind">{entry.kind.replaceAll("_", " ")}</span>
+                    <p>{entry.message}</p>
+                  </li>
+                ))
+              ) : (
+                <li className="trace-item trace-item-empty">
+                  <p>Run the pipeline to inspect the human-readable rewrite trace.</p>
+                </li>
+              )}
+            </ul>
+          </SectionCard>
+        </div>
+
+        <div className="span-5">
           <SectionCard
             eyebrow="Validation"
             title="Validation report"
@@ -282,7 +315,7 @@ export default function App() {
           </SectionCard>
         </div>
 
-        <div className="span-8">
+        <div className="span-12">
           <SectionCard
             eyebrow="Final Output"
             title={`What ${APP_NAME} would show`}

@@ -10,7 +10,8 @@
   "types": "./src/index.ts",
   "dependencies": {
     "@proxy/domain": "workspace:*",
-    "@proxy/shared-types": "workspace:*"
+    "@proxy/shared-types": "workspace:*",
+    "@proxy/validation": "workspace:*"
   },
   "scripts": {
     "lint": "eslint src",

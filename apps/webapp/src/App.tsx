@@ -1,6 +1,6 @@
 import { APP_NAME, readAppEnvironment, readProviderFeatureFlags } from "@proxy/config";
 import { decideEscalation } from "@proxy/policy";
-import { defaultProfileDocument } from "@proxy/profiles";
+import { loadDefaultProfile } from "@proxy/profiles";
 import { cloudProviderPlaceholder, localProviderPlaceholder, routeProvider } from "@proxy/providers";
 import { runRewritePipeline } from "@proxy/rewrite-engine";
 import { SectionCard } from "@proxy/ui";
@@ -12,7 +12,7 @@ export default function App() {
   const featureFlags = readProviderFeatureFlags(
     import.meta.env as unknown as Record<string, string | undefined>
   );
-  const profile = defaultProfileDocument.profile;
+  const profile = loadDefaultProfile();
   const rewritePreview = runRewritePipeline(
     "  Proxy treats upstream model output as draft material before it becomes user-facing language  ",
     {

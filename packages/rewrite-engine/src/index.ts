@@ -1,4 +1,9 @@
-import type { RewriteReport, RewriteStepReport, VoiceProfile } from "@proxy/domain";
+import type {
+  RewriteReport,
+  RewriteStepReport,
+  RewriteTraceEntry,
+  VoiceProfile
+} from "@proxy/domain";
 
 export interface RewriteContext {
   profileTone: string;
@@ -11,6 +16,7 @@ export interface RewriteStepResult {
   output: string;
   changed: boolean;
   note: string;
+  traceEntries: RewriteTraceEntry[];
 }
 
 export interface RewriteStep {
@@ -30,6 +36,14 @@ const cleanText = (input: string): string =>
     .replace(/\s+([,.!?;:])/g, "$1")
     .replace(/([.!?]){2,}/g, "$1")
     .trim();
+
+const createTraceEntry = (
+  kind: RewriteTraceEntry["kind"],
+  message: string
+): RewriteTraceEntry => ({
+  kind,
+  message
+});
 
 const capitalizeSentences = (input: string): string => {
   const trimmed = cleanText(input);
@@ -53,7 +67,10 @@ export const trimWhitespaceStep: RewriteStep = {
     return {
       output,
       changed: output !== input,
-      note: "Normalized leading and trailing whitespace."
+      note: "Normalized leading and trailing whitespace.",
+      traceEntries: output !== input
+        ? [createTraceEntry("structure_change", "Cleaned up spacing before applying profile rules.")]
+        : []
     };
   }
 };
@@ -80,7 +97,10 @@ export const removeBannedPhrasesStep: RewriteStep = {
       note:
         removedPhrases.length > 0
           ? `Removed banned phrases: ${removedPhrases.join(", ")}.`
-          : "No banned phrases were present."
+          : "No banned phrases were present.",
+      traceEntries: removedPhrases.map((phrase) =>
+        createTraceEntry("removed_phrase", `Removed banned phrase: "${phrase}".`)
+      )
     };
   }
 };
@@ -99,7 +119,49 @@ export const removeApologyLanguageStep: RewriteStep = {
     return {
       output,
       changed: output !== input,
-      note: "Removed apology language."
+      note: "Removed apology language.",
+      traceEntries:
+        output !== input
+          ? [
+              createTraceEntry(
+                "removed_phrase",
+                "Removed apology language to keep the response calm and direct."
+              )
+            ]
+          : []
+    };
+  }
+};
+
+export const alignToneStep: RewriteStep = {
+  id: "align-tone",
+  description: "Softens overly excited phrasing so the tone stays measured.",
+  apply(input, context) {
+    const avoidSalesyEnthusiasm = (context.styleRules ?? []).some((rule) =>
+      rule.toLowerCase().includes("salesy enthusiasm")
+    );
+
+    let output = input.replace(/!/g, ".");
+
+    if (avoidSalesyEnthusiasm) {
+      output = output.replace(/\b(amazing|incredible|exciting)\b/gi, "");
+    }
+
+    output = cleanText(output);
+
+    return {
+      output,
+      changed: output !== input,
+      note: output !== input ? "Shifted the tone toward the active profile." : "Tone already felt aligned.",
+      traceEntries:
+        output !== input
+          ? [
+              createTraceEntry(
+                "tone_shift",
+                `Shifted tone toward profile: ${context.profileTone}.`
+              )
+            ]
+          : []
     };
   }
 };
@@ -111,6 +173,12 @@ export const tightenWordingStep: RewriteStep = {
     const avoidFiller = (context.styleRules ?? []).some((rule) =>
       rule.toLowerCase().includes("avoid filler")
     );
+
+    const hadGenericOpening =
+      /^sure[.!]?\s*here(?:'s| is) a helpful response to your question:\s*/i.test(input) ||
+      /^here(?:'s| is) a helpful response to your question:\s*/i.test(input) ||
+      /^sure[.!]?\s*/i.test(input);
+    const hadFillerWords = /\b(helpful|really|basically|just)\b/i.test(input);
 
     let output = input
       .replace(/^sure[.!]?\s*/i, "")
@@ -130,7 +198,23 @@ export const tightenWordingStep: RewriteStep = {
       changed: output !== input,
       note: avoidFiller
         ? "Tightened filler-heavy wording."
-        : "Normalized generic lead-in wording."
+        : "Normalized generic lead-in wording.",
+      traceEntries:
+        output !== input
+          ? [
+              hadGenericOpening
+                ? createTraceEntry(
+                    "tightened_wording",
+                    "Tightened overly generic opening."
+                  )
+                : createTraceEntry(
+                    "tightened_wording",
+                    hadFillerWords
+                      ? "Tightened filler-heavy wording."
+                      : "Tightened wording to keep the response direct."
+                  )
+            ]
+          : []
     };
   }
 };
@@ -147,7 +231,8 @@ export const preferShortSentencesStep: RewriteStep = {
       return {
         output: input,
         changed: false,
-        note: "Profile does not request short-sentence tightening."
+        note: "Profile does not request short-sentence tightening.",
+        traceEntries: []
       };
     }
 
@@ -162,7 +247,16 @@ export const preferShortSentencesStep: RewriteStep = {
     return {
       output,
       changed: output !== input,
-      note: "Split longer clauses into shorter sentences."
+      note: "Split longer clauses into shorter sentences.",
+      traceEntries:
+        output !== input
+          ? [
+              createTraceEntry(
+                "structure_change",
+                "Shortened a long sentence to match the profile's preference for short sentences."
+              )
+            ]
+          : []
     };
   }
 };
@@ -177,7 +271,8 @@ export const ensureTerminalPunctuationStep: RewriteStep = {
     return {
       output,
       changed: output !== input,
-      note: "Added sentence-ending punctuation when it was missing."
+      note: "Added sentence-ending punctuation when it was missing.",
+      traceEntries: []
     };
   }
 };
@@ -190,6 +285,7 @@ export const defaultRewriteSteps: RewriteStep[] = [
   trimWhitespaceStep,
   removeBannedPhrasesStep,
   removeApologyLanguageStep,
+  alignToneStep,
   tightenWordingStep,
   preferShortSentencesStep,
   ensureTerminalPunctuationStep
@@ -209,10 +305,12 @@ export const runRewritePipeline = (
 ): RewriteReport => {
   let current = input;
   const appliedSteps: RewriteStepReport[] = [];
+  const trace: RewriteTraceEntry[] = [];
 
   for (const step of steps) {
     const result = step.apply(current, context);
     current = result.output;
+    trace.push(...result.traceEntries);
     appliedSteps.push({
       stepId: step.id,
       changed: result.changed,
@@ -223,9 +321,16 @@ export const runRewritePipeline = (
   return {
     original: input,
     rewritten: current,
-    changesApplied: appliedSteps.filter((step) => step.changed).map((step) => step.note),
+    changesApplied:
+      trace.length > 0
+        ? trace.map((entry) => entry.message)
+        : appliedSteps.filter((step) => step.changed).map((step) => step.note),
+    trace,
     appliedSteps,
-    summary: `${appliedSteps.filter((step) => step.changed).length} rewrite steps changed the draft.`,
+    summary:
+      trace.length > 0
+        ? `${trace.length} user-facing rewrite notes explain how the draft was aligned to the profile.`
+        : `${appliedSteps.filter((step) => step.changed).length} rewrite steps changed the draft.`,
     finalText: current
   };
 };
