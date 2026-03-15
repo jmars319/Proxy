@@ -17,37 +17,41 @@ export const defaultProfileDocument: ProfileDocument = {
   profile: {
     metadata: {
       id: "profile:default",
-      name: "Default Proxy Voice",
-      description: "Calm, direct, and constraints-aware baseline profile.",
+      name: "Default",
+      description: "Clear, calm, and direct baseline voice for Proxy.",
       tags: ["default", "calm", "local-first"],
       createdAt: now,
       updatedAt: now
     },
-    tone: "calm, precise, and grounded",
+    tone: "clear, calm, direct",
     audience: "general",
-    rewriteDirectives: [
-      "Prefer direct phrasing over hype.",
-      "Reduce unnecessary filler before the user sees output."
-    ],
+    bannedPhrases: ["As an AI language model", "I apologize"],
+    styleRules: ["avoid filler", "prefer short sentences"],
+    rewriteDirectives: ["avoid filler", "prefer short sentences"],
     hardConstraints: [
-      "Do not present provider capability as local authority.",
-      "Do not bypass validation or policy steps."
+      "Do not let provider voice override the profile.",
+      "Do not bypass validation before output is shown."
     ],
     rules: [
       {
         kind: "style",
-        label: "Calm tone",
-        instruction: "Favor measured language and plain claims."
+        label: "Avoid filler",
+        instruction: "Cut generic lead-ins and redundant words."
       },
       {
         kind: "constraint",
-        label: "Voice authority stays local",
-        instruction: "Treat upstream responses as drafts until rewritten and validated."
+        label: "Prefer short sentences",
+        instruction: "Keep the final output concise and easier to scan."
       }
     ],
     defaultProviderId: "provider:local-default"
   }
 };
+
+const cloneProfile = (input: ProfileDocument["profile"]): ProfileDocument["profile"] =>
+  JSON.parse(JSON.stringify(input)) as ProfileDocument["profile"];
+
+export const loadDefaultProfile = (): VoiceProfile => cloneProfile(defaultProfileDocument.profile);
 
 export const isSupportedProfileFile = (fileName: string): boolean =>
   fileName.endsWith(PROFILE_FILE_EXTENSION);

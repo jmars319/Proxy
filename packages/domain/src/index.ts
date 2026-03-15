@@ -17,6 +17,8 @@ export interface VoiceProfile {
   metadata: ProfileMetadata;
   tone: string;
   audience: string;
+  bannedPhrases: string[];
+  styleRules: string[];
   rewriteDirectives: string[];
   hardConstraints: string[];
   rules: VoiceRule[];
@@ -62,12 +64,16 @@ export interface RewriteStepReport {
 }
 
 export interface RewriteReport {
+  original: string;
+  rewritten: string;
+  changesApplied: string[];
   appliedSteps: RewriteStepReport[];
   summary: string;
   finalText: string;
 }
 
 export interface ValidationReport {
+  valid: boolean;
   isValid: boolean;
   violations: string[];
   warnings: string[];

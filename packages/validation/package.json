@@ -9,6 +9,7 @@
   },
   "types": "./src/index.ts",
   "dependencies": {
+    "@proxy/domain": "workspace:*",
     "zod": "4.3.6"
   },
   "scripts": {

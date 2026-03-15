@@ -15,6 +15,7 @@ export interface ProviderGenerateResult {
 
 export interface ProviderAdapter {
   descriptor: ProviderDescriptor;
+  generateDraft(prompt: string): Promise<ProviderGenerateResult>;
   generate(request: GenerationRequest): Promise<ProviderGenerateResult>;
 }
 
@@ -35,13 +36,22 @@ export const cloudProviderPlaceholder: ProviderDescriptor = {
 export class MockProvider implements ProviderAdapter {
   descriptor: ProviderDescriptor = localProviderPlaceholder;
 
-  async generate(request: GenerationRequest): Promise<ProviderGenerateResult> {
+  async generateDraft(prompt: string): Promise<ProviderGenerateResult> {
     return {
-      text: `Mock draft for profile ${request.profileId}: ${request.prompt}`,
-      latencyMs: 12
+      text: `Sure! Here's a helpful response to your question: ${prompt}. As an AI language model, I apologize. The clearest next step is to focus on the main idea, remove extra filler, and respond directly.`,
+      latencyMs: 48
     };
   }
+
+  async generate(request: GenerationRequest): Promise<ProviderGenerateResult> {
+    return this.generateDraft(request.prompt);
+  }
 }
+
+export const generateDraft = async (
+  prompt: string,
+  provider: ProviderAdapter = new MockProvider()
+): Promise<ProviderGenerateResult> => provider.generateDraft(prompt);
 
 export const routeProvider = (
   providerId: ProviderId,

@@ -71,6 +71,7 @@ export const toValidationReport = (
   result: OutputPolicyResult,
   warnings: string[] = []
 ): ValidationReport => ({
+  valid: result.allowed,
   isValid: result.allowed,
   violations: result.violations,
   warnings,
