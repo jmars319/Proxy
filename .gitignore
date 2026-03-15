@@ -1,0 +1,10 @@
+.DS_Store
+.env
+.env.local
+.pnpm-store
+node_modules
+dist
+coverage
+.expo
+apps/desktopapp/src-tauri/target
+apps/desktopapp/src-tauri/gen

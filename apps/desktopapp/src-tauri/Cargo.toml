@@ -1,0 +1,16 @@
+[package]
+name = "proxy-desktopapp"
+version = "0.1.0"
+description = "Proxy desktop shell"
+authors = ["JAMARQ"]
+edition = "2021"
+
+[lib]
+name = "proxy_desktopapp_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }

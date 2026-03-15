@@ -1,0 +1,28 @@
+{
+  "name": "@proxy/webapp",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint src vite.config.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@proxy/config": "workspace:*",
+    "@proxy/policy": "workspace:*",
+    "@proxy/profiles": "workspace:*",
+    "@proxy/providers": "workspace:*",
+    "@proxy/rewrite-engine": "workspace:*",
+    "@proxy/ui": "workspace:*",
+    "react": "19.2.0",
+    "react-dom": "19.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "@vitejs/plugin-react": "6.0.1",
+    "vite": "8.0.0"
+  }
+}

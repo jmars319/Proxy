@@ -1,0 +1,17 @@
+{
+  "expo": {
+    "name": "Proxy",
+    "slug": "proxy-mobileapp",
+    "version": "0.1.0",
+    "scheme": "proxy",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "predictiveBackGestureEnabled": false
+    }
+  }
+}

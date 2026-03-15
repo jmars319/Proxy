@@ -1,0 +1,23 @@
+{
+  "name": "@proxy/mobileapp",
+  "private": true,
+  "version": "0.1.0",
+  "main": "index.ts",
+  "scripts": {
+    "dev": "expo start",
+    "build": "expo export --platform ios --output-dir dist/ios && expo export --platform android --output-dir dist/android",
+    "lint": "eslint App.tsx index.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@proxy/config": "workspace:*",
+    "@proxy/profiles": "workspace:*",
+    "@proxy/rewrite-engine": "workspace:*",
+    "expo": "55.0.6",
+    "react": "19.2.0",
+    "react-native": "0.83.2"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.14"
+  }
+}

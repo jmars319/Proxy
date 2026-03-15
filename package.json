@@ -1,0 +1,36 @@
+{
+  "name": "proxy-by-jamarq",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@10.32.1",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "bootstrap": "./scripts/bootstrap.sh",
+    "check:env": "./scripts/check-env.sh",
+    "check:packages": "node ./scripts/check-packages.mjs",
+    "dev:web": "pnpm --filter @proxy/webapp dev",
+    "dev:desktop": "pnpm --filter @proxy/desktopapp dev",
+    "dev:mobile": "pnpm --filter @proxy/mobileapp dev",
+    "dev:both": "pnpm -r --parallel --filter @proxy/desktopapp --filter @proxy/webapp dev",
+    "build:web": "pnpm --filter @proxy/webapp build",
+    "build:desktop": "pnpm --filter @proxy/desktopapp build",
+    "build:mobile": "pnpm --filter @proxy/mobileapp build",
+    "lint": "eslint .",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "verify:web": "pnpm --filter @proxy/webapp lint && pnpm --filter @proxy/webapp typecheck && pnpm --filter @proxy/webapp build",
+    "verify:desktop": "pnpm --filter @proxy/desktopapp lint && pnpm --filter @proxy/desktopapp typecheck && pnpm --filter @proxy/desktopapp build",
+    "verify:mobile": "pnpm --filter @proxy/mobileapp lint && pnpm --filter @proxy/mobileapp typecheck && pnpm --filter @proxy/mobileapp build",
+    "verify:all": "pnpm run verify:web && pnpm run verify:desktop && pnpm run verify:mobile",
+    "doctor": "./scripts/doctor.sh"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@types/node": "25.5.0",
+    "eslint": "10.0.3",
+    "globals": "17.4.0",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.57.0"
+  }
+}
