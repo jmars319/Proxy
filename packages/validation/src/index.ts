@@ -27,6 +27,23 @@ export const portableProfileArtifactSchema = z.object({
   styleRules: z.array(z.string().min(1)).default([])
 });
 
+export const rewriteTraceKindSchema = z.enum([
+  "removed_phrase",
+  "tone_shift",
+  "tightened_wording",
+  "structure_change"
+]);
+
+export const profileRewriteTestFixtureSchema = z.object({
+  name: z.string().min(1),
+  prompt: z.string().min(1),
+  providerDraft: z.string().min(1),
+  expected: z.object({
+    mustRemove: z.array(z.string().min(1)).default([]),
+    traceIncludes: z.array(rewriteTraceKindSchema).default([])
+  })
+});
+
 export const generateDraftRequestSchema = z.object({
   prompt: z.string().min(1),
   profileId: profileIdSchema,
@@ -55,6 +72,8 @@ export const providerConfigSchema = z.object({
 
 export type ProfileMetadataInput = z.infer<typeof profileMetadataSchema>;
 export type PortableProfileArtifactInput = z.infer<typeof portableProfileArtifactSchema>;
+export type RewriteTraceKindInput = z.infer<typeof rewriteTraceKindSchema>;
+export type ProfileRewriteTestFixtureInput = z.infer<typeof profileRewriteTestFixtureSchema>;
 export type GenerateDraftRequestInput = z.infer<typeof generateDraftRequestSchema>;
 export type ValidationResultInput = z.infer<typeof validationResultSchema>;
 export type ProviderConfigInput = z.infer<typeof providerConfigSchema>;
@@ -66,6 +85,9 @@ export const parseGenerateDraftRequest = (input: unknown) =>
 
 export const parsePortableProfileArtifact = (input: unknown) =>
   portableProfileArtifactSchema.safeParse(input);
+
+export const parseProfileRewriteTestFixture = (input: unknown) =>
+  profileRewriteTestFixtureSchema.safeParse(input);
 
 export const validateRewrittenOutput = (
   output: string,

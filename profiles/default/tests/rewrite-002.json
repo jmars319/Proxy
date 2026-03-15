@@ -1,0 +1,9 @@
+{
+  "name": "tighten_generic_opening",
+  "prompt": "Explain why local-first tools improve user control",
+  "providerDraft": "Sure! Here's a helpful response to your question: local-first tools keep user data on device, and they make control easier for people.",
+  "expected": {
+    "mustRemove": ["Sure!", "Here's a helpful response to your question:"],
+    "traceIncludes": ["tightened_wording", "structure_change"]
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "name": "remove_ai_disclaimer",
+  "prompt": "Explain local-first AI systems",
+  "providerDraft": "As an AI language model, I believe local-first systems provide benefits.",
+  "expected": {
+    "mustRemove": ["As an AI language model"],
+    "traceIncludes": ["removed_phrase"]
+  }
+}

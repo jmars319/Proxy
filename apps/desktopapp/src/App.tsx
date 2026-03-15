@@ -3,6 +3,10 @@ import { APP_NAME, REPO_NAME } from "@proxy/config";
 import type { RewriteReport, ValidationReport, VoiceProfile } from "@proxy/domain";
 import { DEFAULT_PROFILE_ARTIFACT_PATH, loadDefaultProfile } from "@proxy/profiles";
 import { MockProvider } from "@proxy/providers";
+import {
+  runProfileTests,
+  type ProfileTestReport
+} from "@proxy/rewrite-engine/profile-tests";
 import { rewriteDraft } from "@proxy/rewrite-engine";
 import { SectionCard } from "@proxy/ui";
 import { validateRewrittenOutput } from "@proxy/validation";
@@ -76,8 +80,11 @@ export default function App() {
   const defaultProfile = loadDefaultProfile();
   const [prompt, setPrompt] = useState(defaultPrompt);
   const [pipeline, setPipeline] = useState<PipelineSnapshot | null>(null);
+  const [profileTestReport, setProfileTestReport] = useState<ProfileTestReport | null>(null);
   const [isRunning, setIsRunning] = useState(false);
+  const [isRunningProfileTests, setIsRunningProfileTests] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [profileTestError, setProfileTestError] = useState<string | null>(null);
 
   const handleRun = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -110,6 +117,20 @@ export default function App() {
       setError("The mock pipeline failed unexpectedly.");
     } finally {
       setIsRunning(false);
+    }
+  };
+
+  const handleRunProfileTests = () => {
+    setIsRunningProfileTests(true);
+    setProfileTestError(null);
+
+    try {
+      const report = runProfileTests("default");
+      setProfileTestReport(report);
+    } catch {
+      setProfileTestError("Profile tests failed to run.");
+    } finally {
+      setIsRunningProfileTests(false);
     }
   };
 
@@ -160,6 +181,14 @@ export default function App() {
                 <button className="run-button" type="submit" disabled={isRunning}>
                   {isRunning ? "Running..." : "Run Rewrite Pipeline"}
                 </button>
+                <button
+                  className="secondary-button"
+                  type="button"
+                  disabled={isRunningProfileTests}
+                  onClick={handleRunProfileTests}
+                >
+                  {isRunningProfileTests ? "Running Tests..." : "Run Profile Tests"}
+                </button>
                 <span className="microcopy">
                   {pipeline
                     ? `${pipeline.latencyMs}ms mock provider latency`
@@ -168,6 +197,7 @@ export default function App() {
               </div>
             </form>
             {error ? <p className="error-banner">{error}</p> : null}
+            {profileTestError ? <p className="error-banner">{profileTestError}</p> : null}
           </SectionCard>
         </div>
 
@@ -194,7 +224,55 @@ export default function App() {
                 <dt>Artifact path</dt>
                 <dd>{DEFAULT_PROFILE_ARTIFACT_PATH}</dd>
               </div>
+              <div>
+                <dt>Test fixtures</dt>
+                <dd>profiles/default/tests/</dd>
+              </div>
             </dl>
+          </SectionCard>
+        </div>
+
+        <div className="span-12">
+          <SectionCard
+            eyebrow="Profile Tests"
+            title="Behavior checks for the active profile"
+            description="Fixtures verify that the profile still shapes rewrite behavior the way Proxy expects, without locking to exact output text."
+          >
+            <div className="test-summary">
+              {profileTestReport ? (
+                <strong>
+                  Passed: {profileTestReport.passed} / {profileTestReport.totalTests}
+                </strong>
+              ) : (
+                <strong>Run the profile tests to verify the default artifact.</strong>
+              )}
+            </div>
+            <ul className="test-result-list">
+              {profileTestReport ? (
+                profileTestReport.results.map((result) => (
+                  <li
+                    key={result.name}
+                    className={result.passed ? "test-result test-result-pass" : "test-result test-result-fail"}
+                  >
+                    <div className="test-result-header">
+                      <span>{result.name}</span>
+                      <strong>{result.passed ? "PASS" : "FAIL"}</strong>
+                    </div>
+                    {!result.passed && result.failures.length > 0 ? (
+                      <ul className="test-failure-list">
+                        {result.failures.map((failure) => (
+                          <li key={`${result.name}-${failure}`}>{failure}</li>
+                        ))}
+                      </ul>
+                    ) : null}
+                  </li>
+                ))
+              ) : (
+                <li className="test-result">
+                  Fixture-backed rewrite checks have not been run yet.
+                </li>
+              )}
+            </ul>
           </SectionCard>
         </div>
 

@@ -27,6 +27,9 @@
       "@proxy/config": ["packages/config/src/index.ts"],
       "@proxy/profiles": ["packages/profiles/src/index.ts"],
       "@proxy/rewrite-engine": ["packages/rewrite-engine/src/index.ts"],
+      "@proxy/rewrite-engine/profile-tests": [
+        "packages/rewrite-engine/src/profile-tests.ts"
+      ],
       "@proxy/policy": ["packages/policy/src/index.ts"],
       "@proxy/providers": ["packages/providers/src/index.ts"],
       "@proxy/storage": ["packages/storage/src/index.ts"]

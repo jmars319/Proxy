@@ -5,11 +5,14 @@
   "type": "module",
   "sideEffects": false,
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./profile-tests": "./src/profile-tests.ts"
   },
   "types": "./src/index.ts",
   "dependencies": {
-    "@proxy/domain": "workspace:*"
+    "@proxy/domain": "workspace:*",
+    "@proxy/profiles": "workspace:*",
+    "@proxy/validation": "workspace:*"
   },
   "scripts": {
     "lint": "eslint src",
