@@ -1,8 +1,8 @@
 [package]
 name = "proxy-desktopapp"
 version = "0.1.0"
-description = "Proxy desktop shell"
-authors = ["JAMARQ"]
+description = "tenra Proxy desktop shell"
+authors = ["tenra"]
 edition = "2021"
 
 [lib]

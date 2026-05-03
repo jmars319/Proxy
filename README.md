@@ -1,10 +1,10 @@
-# Proxy by JAMARQ
+# tenra Proxy
 
-Proxy is a local-first AI layer that rewrites any upstream model output into the user's voice and enforces user-defined constraints before anything reaches them.
+tenra Proxy is a local-first AI layer that rewrites any upstream model output into the user's voice and enforces user-defined constraints before anything reaches them.
 
 This repository is scaffolded as a `pnpm` monorepo with thin apps and shared packages. Capability can come from any model provider. Voice authority, validation, and policy decisions are designed to stay local-first.
 
-## Why Proxy exists
+## Why tenra Proxy exists
 
 - Upstream providers are interchangeable capability sources.
 - Local profiles define tone, style, boundaries, and rewrite expectations.

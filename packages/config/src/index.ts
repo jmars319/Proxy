@@ -1,8 +1,8 @@
 import type { ProviderId } from "@proxy/shared-types";
 
-export const APP_NAME = "Proxy";
-export const REPO_NAME = "Proxy by JAMARQ";
-export const BRAND_NAME = "JAMARQ";
+export const APP_NAME = "tenra Proxy";
+export const REPO_NAME = "tenra Proxy";
+export const BRAND_NAME = "tenra";
 
 export interface AppEnvironment {
   appName: string;

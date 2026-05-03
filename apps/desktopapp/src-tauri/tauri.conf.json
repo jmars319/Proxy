@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Proxy",
+  "productName": "tenra Proxy",
   "version": "0.1.0",
-  "identifier": "com.jamarq.proxy",
+  "identifier": "co.tenra.proxy",
   "build": {
     "beforeDevCommand": "pnpm run renderer:dev",
     "devUrl": "http://localhost:1420",
@@ -13,7 +13,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "Proxy by JAMARQ",
+        "title": "tenra Proxy",
         "width": 1280,
         "height": 860,
         "minWidth": 1120,

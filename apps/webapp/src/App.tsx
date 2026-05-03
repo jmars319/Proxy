@@ -14,7 +14,7 @@ export default function App() {
   );
   const profile = loadDefaultProfile();
   const rewritePreview = runRewritePipeline(
-    "  Proxy treats upstream model output as draft material before it becomes user-facing language  ",
+    "  tenra Proxy treats upstream model output as draft material before it becomes user-facing language  ",
     {
       profileTone: profile.tone,
       hardConstraints: profile.hardConstraints
@@ -47,7 +47,7 @@ export default function App() {
         <SectionCard
           eyebrow="Core Promise"
           title="Voice stays local"
-          description="Proxy exists to keep final output authority in local profiles, policies, and validation steps."
+          description="tenra Proxy exists to keep final output authority in local profiles, policies, and validation steps."
         >
           <div className="callout">{rewritePreview.finalText}</div>
         </SectionCard>

@@ -16,8 +16,8 @@ require_command() {
 
 echo "Checking local prerequisites..."
 
-require_command "node" "Install Node.js 22+ before bootstrapping Proxy."
-require_command "pnpm" "Install pnpm 10+ before bootstrapping Proxy."
+require_command "node" "Install Node.js 22+ before bootstrapping tenra Proxy."
+require_command "pnpm" "Install pnpm 10+ before bootstrapping tenra Proxy."
 
 NODE_MAJOR="$(node -p "process.versions.node.split('.')[0]")"
 if [ "$NODE_MAJOR" -lt 22 ]; then

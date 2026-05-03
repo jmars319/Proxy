@@ -4,7 +4,7 @@
 
 ### `apps/desktopapp`
 
-Primary product surface. This is the most complete shell in the repo and is where Proxy's calm, local-first user experience should lead.
+Primary product surface. This is the most complete shell in the repo and is where tenra Proxy's calm, local-first user experience should lead.
 
 - Status: foundational
 - Stack: Tauri + Vite + React + TypeScript

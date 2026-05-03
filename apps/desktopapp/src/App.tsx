@@ -141,10 +141,10 @@ export default function App() {
     <div className="workspace-shell">
       <header className="workspace-hero">
         <div className="hero-copy">
-          <span className="eyebrow">Proxy v0.2</span>
+          <span className="eyebrow">tenra Proxy v0.2</span>
           <h1>Rewrite trace and portable profile artifacts</h1>
           <p>
-            Prompt in. Generic provider draft out. Then Proxy rewrites it with the active voice
+            Prompt in. Generic provider draft out. Then tenra Proxy rewrites it with the active voice
             profile artifact, validates it, and shows why the final output sounds more like the
             profile than the provider draft did.
           </p>
@@ -163,7 +163,7 @@ export default function App() {
           <SectionCard
             eyebrow="Workspace"
             title="Run the pipeline"
-            description="This slice proves the product boundary: provider output is only draft material until Proxy rewrites and validates it."
+            description="This slice proves the product boundary: provider output is only draft material until tenra Proxy rewrites and validates it."
           >
             <form className="prompt-form" onSubmit={handleRun}>
               <label className="field-label" htmlFor="proxy-prompt">
@@ -175,7 +175,7 @@ export default function App() {
                 rows={7}
                 value={prompt}
                 onChange={(event) => setPrompt(event.target.value)}
-                placeholder="Describe the response you want Proxy to process."
+                placeholder="Describe the response you want tenra Proxy to process."
               />
               <div className="form-actions">
                 <button className="run-button" type="submit" disabled={isRunning}>
@@ -205,7 +205,7 @@ export default function App() {
           <SectionCard
             eyebrow="Active Profile"
             title={activeProfile.metadata.name}
-            description="Profiles are portable artifacts. Proxy loads the artifact, validates it, then turns it into the richer domain shape used by the rewrite pipeline."
+            description="Profiles are portable artifacts. tenra Proxy loads the artifact, validates it, then turns it into the richer domain shape used by the rewrite pipeline."
           >
             <dl className="detail-stack">
               <div>
@@ -236,7 +236,7 @@ export default function App() {
           <SectionCard
             eyebrow="Profile Tests"
             title="Behavior checks for the active profile"
-            description="Fixtures verify that the profile still shapes rewrite behavior the way Proxy expects, without locking to exact output text."
+            description="Fixtures verify that the profile still shapes rewrite behavior the way tenra Proxy expects, without locking to exact output text."
           >
             <div className="test-summary">
               {profileTestReport ? (
