@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "pnpm exec tauri dev",
     "renderer:dev": "vite --port 1420 --strictPort",
-    "build": "pnpm exec tauri build --debug",
+    "build": "pnpm exec tauri build --bundles app",
     "renderer:build": "vite build",
     "lint": "eslint src vite.config.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json"

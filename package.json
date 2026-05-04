@@ -16,6 +16,8 @@
     "dev:both": "pnpm -r --parallel --filter @proxy/desktopapp --filter @proxy/webapp dev",
     "build:web": "pnpm --filter @proxy/webapp build",
     "build:desktop": "pnpm --filter @proxy/desktopapp build",
+    "package:desktop": "pnpm run build:desktop",
+    "install:desktop": "pnpm run package:desktop && bash ./scripts/install-desktop-app.sh",
     "build:mobile": "pnpm --filter @proxy/mobileapp build",
     "lint": "eslint .",
     "typecheck": "pnpm -r --if-present typecheck",
