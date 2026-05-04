@@ -46,8 +46,8 @@ const buildPipelineStages = (
   },
   {
     label: "Provider Draft",
-    text: pipeline?.rawDraft ?? "Run the pipeline to generate a raw provider draft.",
-    note: `${provider.descriptor.label} simulates upstream capability.`
+    text: pipeline?.rawDraft ?? "Run the pipeline to generate the source draft.",
+    note: `${provider.descriptor.label} supplies the first-pass response.`
   },
   {
     label: "Rewrite Engine",
@@ -191,8 +191,8 @@ export default function App() {
                 </button>
                 <span className="microcopy">
                   {pipeline
-                    ? `${pipeline.latencyMs}ms mock provider latency`
-                    : "Mock provider only. No real model calls yet."}
+                    ? `${pipeline.latencyMs}ms preview provider latency`
+                    : "Local preview provider"}
                 </span>
               </div>
             </form>
@@ -308,7 +308,7 @@ export default function App() {
             description="This is intentionally generic upstream-style output."
           >
             <div className="output-panel">
-              {pipeline?.rawDraft ?? "Run the pipeline to inspect the mock provider draft."}
+              {pipeline?.rawDraft ?? "Run the pipeline to inspect the source draft."}
             </div>
           </SectionCard>
         </div>
@@ -348,7 +348,7 @@ export default function App() {
                 ))
               ) : (
                 <li className="trace-item trace-item-empty">
-                  <p>Run the pipeline to inspect the human-readable rewrite trace.</p>
+                  <p>Run the pipeline to inspect the rewrite trace.</p>
                 </li>
               )}
             </ul>

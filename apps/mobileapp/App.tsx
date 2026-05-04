@@ -2,7 +2,7 @@ import { SafeAreaView, ScrollView, StyleSheet, Text, View } from "react-native";
 import { APP_NAME } from "@proxy/config";
 import { runRewritePipeline } from "@proxy/rewrite-engine";
 
-const preview = runRewritePipeline("  Mobile is scaffolded and ready for future activation  ", {
+const preview = runRewritePipeline("  Mobile keeps profile review and policy checks aligned with desktop  ", {
   profileTone: "clear, calm, direct",
   hardConstraints: [
     "Do not let provider voice override the profile.",
@@ -15,11 +15,10 @@ export default function App() {
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.hero}>
-          <Text style={styles.kicker}>Future Surface</Text>
-          <Text style={styles.title}>{APP_NAME} mobile scaffold</Text>
+          <Text style={styles.kicker}>Mobile channel</Text>
+          <Text style={styles.title}>{APP_NAME} mobile</Text>
           <Text style={styles.body}>
-            Mobile is present so the repo is standardized from day one, but the active product
-            focus remains on desktop.
+            Mobile is reserved for profile review, quick policy checks, and lightweight draft inspection.
           </Text>
         </View>
 
@@ -38,8 +37,7 @@ export default function App() {
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Activation note</Text>
           <Text style={styles.cardBody}>
-            Keep mobile thin until profile editing, local storage, and policy flows justify a full
-            surface.
+            Desktop remains the primary workspace while mobile stays focused on review and quick checks.
           </Text>
         </View>
       </ScrollView>

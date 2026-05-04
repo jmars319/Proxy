@@ -35,11 +35,10 @@ export default function App() {
   return (
     <div className="page-shell">
       <header className="hero">
-        <span className="eyebrow">Secondary Surface</span>
+        <span className="eyebrow">Web channel</span>
         <h1>{APP_NAME} on the web</h1>
         <p>
-          The web app is intentionally lighter than desktop. Vite keeps it aligned with the
-          Tauri renderer and avoids server scaffolding the repo does not need yet.
+          The web app mirrors the shared profile, policy, and routing model used by the desktop product.
         </p>
       </header>
 
@@ -88,7 +87,7 @@ export default function App() {
         <SectionCard
           eyebrow="Status"
           title="Configured capabilities"
-          description="Cloud adapters are placeholders until real provider integrations are justified."
+          description="Provider integrations stay separated from profile ownership and validation."
         >
           <ul className="token-list">
             <li>OpenAI: {featureFlags.openai ? "configured" : "not configured"}</li>

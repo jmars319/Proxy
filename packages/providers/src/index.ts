@@ -21,14 +21,14 @@ export interface ProviderAdapter {
 
 export const localProviderPlaceholder: ProviderDescriptor = {
   id: "provider:local-default",
-  label: "Local Placeholder Provider",
+  label: "Local Preview Provider",
   mode: "local",
   enabled: true
 };
 
 export const cloudProviderPlaceholder: ProviderDescriptor = {
   id: "provider:cloud-placeholder",
-  label: "Cloud Placeholder Provider",
+  label: "Cloud Provider Reserved",
   mode: "cloud",
   enabled: false
 };
