@@ -9,6 +9,47 @@ import type {
 } from "@proxy/domain";
 import type { ProfileId } from "@proxy/shared-types";
 
+export type ProxyClientApp =
+  | "align"
+  | "assembly"
+  | "derive"
+  | "facet"
+  | "ledger"
+  | "registry"
+  | "scout"
+  | "sentinel"
+  | "vicina"
+  | "unknown";
+
+export type ProxyOutputSurface =
+  | "email"
+  | "letter"
+  | "public-listing"
+  | "proposal"
+  | "report"
+  | "support-note"
+  | "website-copy"
+  | "internal-note";
+
+export interface ShapeExternalOutputRequest {
+  clientApp: ProxyClientApp;
+  surface: ProxyOutputSurface;
+  profileId: ProfileId;
+  purpose: string;
+  draftText: string;
+  audience?: string;
+  hardConstraints: string[];
+  traceId: string;
+}
+
+export interface ShapeExternalOutputResponse {
+  text: string;
+  validation: ValidationReport;
+  rewriteReport: RewriteReport;
+  escalation: EscalationDecision;
+  guardrailRecommended: boolean;
+}
+
 export interface GenerateDraftRequest {
   generation: GenerationRequest;
   previewOnly?: boolean;
