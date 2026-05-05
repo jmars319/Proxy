@@ -6,7 +6,7 @@ This repository is scaffolded as a `pnpm` monorepo with thin apps and shared pac
 
 ## Why tenra Proxy exists
 
-- Upstream providers are interchangeable capability sources.
+- Upstream providers are interchangeable capability sources; the desktop app now defaults to a deterministic local provider.
 - Local profiles define tone, style, boundaries, and rewrite expectations.
 - Rewrite and validation pipelines sit between model output and the user-facing surface.
 - Local authority is the product, not an optional post-processing step.
@@ -37,9 +37,26 @@ packages/
   profiles/     Voice-profile artifacts and helpers
   rewrite-engine/ Local rewrite pipeline seed
   policy/       Constraints, guardrails, escalation rules
-  providers/    Provider abstractions and mock routing
+  providers/    Local provider, optional Ollama provider, and routing abstractions
   storage/      Local-first persistence interfaces
 ```
+
+## Local Provider Modes
+
+The desktop app is functional without a cloud key. By default it uses a local
+rule provider to create draft material, then runs the rewrite and validation
+pipeline locally.
+
+For a local LLM, run Ollama and set:
+
+```bash
+VITE_PROXY_PROVIDER=ollama
+VITE_PROXY_OLLAMA_BASE_URL=http://127.0.0.1:11434
+VITE_PROXY_OLLAMA_MODEL=llama3.2
+```
+
+Cloud provider keys remain optional capability sources; they are not required
+for the local pipeline.
 
 ## Commands
 

@@ -2,7 +2,7 @@ import { Fragment, useState, type FormEvent } from "react";
 import { APP_NAME, REPO_NAME } from "@proxy/config";
 import type { RewriteReport, ValidationReport, VoiceProfile } from "@proxy/domain";
 import { DEFAULT_PROFILE_ARTIFACT_PATH, loadDefaultProfile } from "@proxy/profiles";
-import { MockProvider } from "@proxy/providers";
+import { createDefaultProvider } from "@proxy/providers";
 import {
   runProfileTests,
   type ProfileTestReport
@@ -13,7 +13,7 @@ import { validateRewrittenOutput } from "@proxy/validation";
 
 const defaultPrompt =
   "Explain why clear communication matters when using AI tools for everyday work.";
-const provider = new MockProvider();
+const provider = createDefaultProvider(import.meta.env);
 
 interface PipelineSnapshot {
   prompt: string;
@@ -129,7 +129,7 @@ export default function App() {
         latencyMs: draft.latencyMs
       });
     } catch {
-      setError("The mock pipeline failed unexpectedly.");
+      setError("The local provider pipeline failed unexpectedly.");
     } finally {
       setIsRunning(false);
     }
