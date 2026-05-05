@@ -31,6 +31,21 @@ interface PipelineStage {
   note: string;
 }
 
+const suitePromptTemplates = [
+  {
+    label: "Assembly brief",
+    prompt: "Rewrite this approved brief into concise internal content language while preserving all claims and review caveats."
+  },
+  {
+    label: "Registry document",
+    prompt: "Rewrite this rental document paragraph so it is clear, direct, and suitable for a customer-facing storage-container rental agreement."
+  },
+  {
+    label: "Scout outreach",
+    prompt: "Rewrite this Scout opportunity note into a restrained outreach draft that references only the evidence provided."
+  }
+];
+
 const getFinalOutput = (rewrite: RewriteReport, validation: ValidationReport): string =>
   validation.valid ? rewrite.rewritten : "Validation blocked the rewritten output.";
 
@@ -134,6 +149,21 @@ export default function App() {
     }
   };
 
+  const applySuitePrompt = (nextPrompt: string) => {
+    setPrompt(nextPrompt);
+    setError(null);
+  };
+
+  const copyFinalOutput = async () => {
+    if (!pipeline) return;
+
+    try {
+      await navigator.clipboard.writeText(pipeline.finalOutput);
+    } catch {
+      setError("Final output copy failed.");
+    }
+  };
+
   const activeProfile = pipeline?.profile ?? defaultProfile;
   const stages = buildPipelineStages(prompt, activeProfile, pipeline);
 
@@ -177,6 +207,18 @@ export default function App() {
                 onChange={(event) => setPrompt(event.target.value)}
                 placeholder="Describe the response you want tenra Proxy to process."
               />
+              <div className="suite-template-row" aria-label="Suite prompt starters">
+                {suitePromptTemplates.map((template) => (
+                  <button
+                    className="secondary-button"
+                    key={template.label}
+                    type="button"
+                    onClick={() => applySuitePrompt(template.prompt)}
+                  >
+                    {template.label}
+                  </button>
+                ))}
+              </div>
               <div className="form-actions">
                 <button className="run-button" type="submit" disabled={isRunning}>
                   {isRunning ? "Running..." : "Run Rewrite Pipeline"}
@@ -399,6 +441,11 @@ export default function App() {
             title={`What ${APP_NAME} would show`}
             description={`${REPO_NAME} keeps the final user-facing output behind the rewrite and validation boundary.`}
           >
+            <div className="form-actions final-actions">
+              <button className="secondary-button" type="button" disabled={!pipeline} onClick={copyFinalOutput}>
+                Copy Final Output
+              </button>
+            </div>
             <div className="output-panel output-panel-strong">
               {pipeline?.finalOutput ?? "No final output yet. Run the pipeline to produce one."}
             </div>

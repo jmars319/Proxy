@@ -171,6 +171,21 @@ textarea {
   flex-wrap: wrap;
 }
 
+.suite-template-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.suite-template-row .secondary-button {
+  padding: 9px 13px;
+}
+
+.final-actions {
+  justify-content: flex-start;
+  margin-bottom: 12px;
+}
+
 .run-button {
   border: 0;
   border-radius: 999px;
