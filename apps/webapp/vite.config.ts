@@ -5,7 +5,10 @@ import { defineConfig } from "vite";
 import { readSuiteEndpointConfig } from "@proxy/config";
 import { handleShapeExternalOutputPayload } from "./src/shaping-api";
 import {
+  appendSuiteHealthHistory,
   readPersistedSuiteProfilePresetOverrides,
+  readSuiteHealthHistory,
+  resetPersistedSuiteProfilePresetOverrides,
   writePersistedSuiteProfilePresetOverrides
 } from "./src/suite-profile-store";
 
@@ -79,14 +82,16 @@ export default defineConfig({
         });
 
         server.middlewares.use("/api/suite-profile-overrides", async (request, response, next) => {
-          if (request.method !== "GET" && request.method !== "POST") {
+          if (request.method !== "GET" && request.method !== "POST" && request.method !== "DELETE") {
             next();
             return;
           }
 
           try {
             const overrides =
-              request.method === "POST"
+              request.method === "DELETE"
+                ? resetPersistedSuiteProfilePresetOverrides()
+                : request.method === "POST"
                 ? writePersistedSuiteProfilePresetOverrides(
                     JSON.parse((await readRequestBody(request)) || "{}").overrides ?? {}
                   )
@@ -107,6 +112,19 @@ export default defineConfig({
             return;
           }
 
+          const endpoints = {
+            shapeExternalOutput: "/api/shape-external-output",
+            suiteProfileOverrides: "/api/suite-profile-overrides"
+          };
+          const allowedOrigins = readSuiteEndpointConfig(process.env).allowedOrigins;
+          const checkedAt = new Date().toISOString();
+          const history = appendSuiteHealthHistory({
+            ok: true,
+            checkedAt,
+            endpoints,
+            allowedOrigins
+          });
+
           response.statusCode = 200;
           response.setHeader("Content-Type", "application/json; charset=utf-8");
           response.end(
@@ -114,17 +132,26 @@ export default defineConfig({
               {
                 ok: true,
                 app: "tenra Proxy",
-                checkedAt: new Date().toISOString(),
-                endpoints: {
-                  shapeExternalOutput: "/api/shape-external-output",
-                  suiteProfileOverrides: "/api/suite-profile-overrides"
-                },
-                allowedOrigins: readSuiteEndpointConfig(process.env).allowedOrigins
+                checkedAt,
+                endpoints,
+                allowedOrigins,
+                history
               },
               null,
               2
             )
           );
+        });
+
+        server.middlewares.use("/api/suite-health-history", async (request, response, next) => {
+          if (request.method !== "GET") {
+            next();
+            return;
+          }
+
+          response.statusCode = 200;
+          response.setHeader("Content-Type", "application/json; charset=utf-8");
+          response.end(JSON.stringify({ ok: true, history: readSuiteHealthHistory() }, null, 2));
         });
       }
     }

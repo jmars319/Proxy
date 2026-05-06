@@ -25,6 +25,16 @@ const visibleSuitePresetIds = [
   "assembly-document-note"
 ] as const;
 
+type SuiteHealthResponse = {
+  ok?: boolean;
+  checkedAt?: string;
+  history?: Array<{
+    checkedAt: string;
+    ok: boolean;
+  }>;
+  error?: string;
+};
+
 export default function App() {
   const environment = readAppEnvironment(
     import.meta.env as unknown as Record<string, string | undefined>
@@ -37,7 +47,7 @@ export default function App() {
     readSuiteProfilePresetOverrides(import.meta.env as unknown as Record<string, string | undefined>)
   );
   const [profileStoreNotice, setProfileStoreNotice] = useState("Profile overrides loaded from environment.");
-  const [suiteHealth, setSuiteHealth] = useState<Record<string, unknown> | null>(null);
+  const [suiteHealth, setSuiteHealth] = useState<SuiteHealthResponse | null>(null);
   const rewritePreview = runRewritePipeline(
     "  tenra Proxy treats upstream model output as draft material before it becomes user-facing language  ",
     {
@@ -122,6 +132,17 @@ export default function App() {
     setProfileStoreNotice("Profile overrides saved to the local Proxy profile store.");
   }
 
+  async function resetSuiteOverrides() {
+    const response = await fetch("/api/suite-profile-overrides", { method: "DELETE" });
+    const body = (await response.json()) as { ok?: boolean; errors?: string[]; overrides?: SuiteProfilePresetOverrides };
+    if (!response.ok || !body.ok) {
+      setProfileStoreNotice(body.errors?.join(", ") ?? "Profile override reset failed.");
+      return;
+    }
+    setSuiteOverrides({});
+    setProfileStoreNotice("Profile overrides reset to defaults.");
+  }
+
   useEffect(() => {
     void fetch("/api/suite-profile-overrides")
       .then((response) => response.json())
@@ -135,7 +156,7 @@ export default function App() {
 
     void fetch("/api/suite-health")
       .then((response) => response.json())
-      .then((body: Record<string, unknown>) => setSuiteHealth(body))
+      .then((body: SuiteHealthResponse) => setSuiteHealth(body))
       .catch(() => setSuiteHealth({ ok: false, error: "Suite health endpoint unavailable." }));
   }, []);
 
@@ -202,6 +223,7 @@ export default function App() {
             <li>Google: {featureFlags.google ? "configured" : "not configured"}</li>
             <li>Cloud escalation: {environment.allowCloudEscalation ? "enabled" : "disabled"}</li>
             <li>Suite health: {suiteHealth?.ok ? "available" : "unavailable"}</li>
+            <li>Health checks recorded: {suiteHealth?.history?.length ?? 0}</li>
           </ul>
         </SectionCard>
 
@@ -265,6 +287,19 @@ export default function App() {
           <button type="button" onClick={() => void saveSuiteOverrides()}>
             Save local profile store
           </button>
+          <button type="button" onClick={() => void resetSuiteOverrides()}>
+            Reset defaults
+          </button>
+          {suiteHealth?.history?.length ? (
+            <dl className="detail-list">
+              {suiteHealth.history.slice(0, 3).map((entry) => (
+                <div key={entry.checkedAt}>
+                  <dt>{new Date(entry.checkedAt).toLocaleString()}</dt>
+                  <dd>{entry.ok ? "healthy" : "degraded"}</dd>
+                </div>
+              ))}
+            </dl>
+          ) : null}
         </SectionCard>
       </section>
     </div>
