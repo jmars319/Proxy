@@ -18,6 +18,7 @@
     "build:desktop": "pnpm --filter @proxy/desktopapp build",
     "package:desktop": "pnpm run build:desktop",
     "install:desktop": "pnpm run package:desktop && bash ./scripts/install-desktop-app.sh",
+    "launch:desktop": "open -n \"/Applications/tenra Proxy.app\"",
     "build:mobile": "pnpm --filter @proxy/mobileapp build",
     "lint": "eslint .",
     "typecheck": "pnpm -r --if-present typecheck",

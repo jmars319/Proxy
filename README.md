@@ -75,6 +75,7 @@ for the local pipeline.
 - `pnpm dev:both`: runs desktop and web dev servers together.
 - `pnpm build:web`
 - `pnpm build:desktop`
+- `pnpm launch:desktop`
 - `pnpm build:mobile`
 - `pnpm lint`
 - `pnpm typecheck`

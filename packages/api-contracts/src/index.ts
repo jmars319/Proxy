@@ -14,7 +14,9 @@ export type ProxyClientApp =
   | "assembly"
   | "derive"
   | "facet"
+  | "guardrail"
   | "ledger"
+  | "partition"
   | "registry"
   | "scout"
   | "sentinel"
@@ -24,6 +26,8 @@ export type ProxyClientApp =
 export type ProxyOutputSurface =
   | "email"
   | "letter"
+  | "moderation-note"
+  | "operator-brief"
   | "public-listing"
   | "proposal"
   | "report"
@@ -38,6 +42,11 @@ export interface ShapeExternalOutputRequest {
   purpose: string;
   draftText: string;
   audience?: string;
+  sourceArtifact?: {
+    schema: string;
+    artifactId?: string;
+    exportedAt?: string;
+  };
   hardConstraints: string[];
   traceId: string;
 }
