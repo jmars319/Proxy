@@ -3,6 +3,7 @@ import type {
   ShapeExternalOutputPresetRequest,
   ShapeExternalOutputResponse
 } from "@proxy/api-contracts";
+import { readSuiteProfilePresetOverrides } from "@proxy/config";
 import { loadProfile } from "@proxy/profiles";
 import {
   buildShapeExternalOutputRequestFromPreset,
@@ -26,6 +27,24 @@ function formatParseErrors(input: { error: { issues: Array<{ path: PropertyKey[]
   );
 }
 
+function applySavedProfilePreset(
+  request: ShapeExternalOutputRequest,
+  presetKey?: string
+): ShapeExternalOutputRequest {
+  const overrides = readSuiteProfilePresetOverrides(process.env);
+  const override = (presetKey ? overrides[presetKey] : undefined) ?? overrides[request.clientApp];
+
+  if (!override) {
+    return request;
+  }
+
+  return {
+    ...request,
+    profileId: (override.profileId ?? request.profileId) as ShapeExternalOutputRequest["profileId"],
+    hardConstraints: [...request.hardConstraints, ...(override.hardConstraints ?? [])]
+  };
+}
+
 export function handleShapeExternalOutputPayload(input: unknown): ShapeExternalOutputApiResponse {
   const preset = parseShapeExternalOutputPresetRequest(input);
   const full = parseShapeExternalOutputRequest(input);
@@ -38,12 +57,13 @@ export function handleShapeExternalOutputPayload(input: unknown): ShapeExternalO
   }
 
   const defaultProfile = loadProfile("profile:default");
-  const request = preset.success
+  const request = applySavedProfilePreset(preset.success
     ? buildShapeExternalOutputRequestFromPreset(
         preset.data as ShapeExternalOutputPresetRequest,
         defaultProfile.metadata.id
       )
-    : (full.data as ShapeExternalOutputRequest);
+    : (full.data as ShapeExternalOutputRequest),
+    preset.success ? preset.data.presetId : undefined);
   const profile = loadProfile(request.profileId);
 
   return {

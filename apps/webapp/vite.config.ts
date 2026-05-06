@@ -2,6 +2,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
+import { readSuiteEndpointConfig } from "@proxy/config";
 import { handleShapeExternalOutputPayload } from "./src/shaping-api";
 
 const currentDirectory = path.dirname(fileURLToPath(import.meta.url));
@@ -25,8 +26,32 @@ export default defineConfig({
       name: "proxy-suite-shaping-api",
       configureServer(server) {
         server.middlewares.use("/api/shape-external-output", async (request, response, next) => {
+          const origin = request.headers.origin;
+          const allowedOrigins = readSuiteEndpointConfig(process.env).allowedOrigins;
+          const originAllowed = !origin || allowedOrigins.includes(origin);
+
+          if (origin && originAllowed) {
+            response.setHeader("Access-Control-Allow-Origin", origin);
+            response.setHeader("Vary", "Origin");
+          }
+          response.setHeader("Access-Control-Allow-Headers", "Content-Type");
+          response.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+
+          if (request.method === "OPTIONS") {
+            response.statusCode = originAllowed ? 204 : 403;
+            response.end();
+            return;
+          }
+
           if (request.method !== "POST") {
             next();
+            return;
+          }
+
+          if (!originAllowed) {
+            response.statusCode = 403;
+            response.setHeader("Content-Type", "application/json; charset=utf-8");
+            response.end(JSON.stringify({ ok: false, errors: ["Origin is not allowed for Proxy suite shaping."] }));
             return;
           }
 

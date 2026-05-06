@@ -21,6 +21,17 @@ export interface ProviderFeatureFlags {
   google: boolean;
 }
 
+export interface SuiteEndpointConfig {
+  allowedOrigins: string[];
+}
+
+export interface SuiteProfilePresetOverride {
+  profileId?: string | undefined;
+  hardConstraints?: string[] | undefined;
+}
+
+export type SuiteProfilePresetOverrides = Record<string, SuiteProfilePresetOverride>;
+
 const parseBoolean = (value: string | undefined, fallback = false): boolean => {
   if (!value) {
     return fallback;
@@ -49,3 +60,36 @@ export const readProviderFeatureFlags = (
   anthropic: Boolean(source.ANTHROPIC_API_KEY),
   google: Boolean(source.GOOGLE_API_KEY)
 });
+
+const defaultSuiteAllowedOrigins = [
+  "http://localhost:3000",
+  "http://localhost:3001",
+  "http://localhost:4173",
+  "http://127.0.0.1:3000",
+  "http://127.0.0.1:3001",
+  "http://127.0.0.1:4173"
+];
+
+export const readSuiteEndpointConfig = (
+  source: Record<string, string | undefined>
+): SuiteEndpointConfig => ({
+  allowedOrigins: (source.PROXY_SUITE_ALLOWED_ORIGINS ?? defaultSuiteAllowedOrigins.join(","))
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean)
+});
+
+export const readSuiteProfilePresetOverrides = (
+  source: Record<string, string | undefined>
+): SuiteProfilePresetOverrides => {
+  if (!source.PROXY_SUITE_PROFILE_PRESETS) {
+    return {};
+  }
+
+  try {
+    const parsed = JSON.parse(source.PROXY_SUITE_PROFILE_PRESETS) as SuiteProfilePresetOverrides;
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return {};
+  }
+};

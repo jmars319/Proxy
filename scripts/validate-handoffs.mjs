@@ -1,7 +1,12 @@
 import fs from "node:fs";
 import path from "node:path";
+import { spawnSync } from "node:child_process";
 
 const fixtureDir = path.resolve("fixtures/handoffs");
+const registryDocCheck = spawnSync(process.execPath, ["scripts/generate-handoff-registry.mjs", "--check"], {
+  stdio: "inherit"
+});
+if (registryDocCheck.status !== 0) process.exit(registryDocCheck.status ?? 1);
 const expectedSurfaces = new Set(["moderation-note", "operator-brief", "email", "report", "internal-note"]);
 const expectedPresetIds = new Set([
   "scout-outreach",
