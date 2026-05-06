@@ -25,6 +25,7 @@
     "verify:web": "pnpm --filter @proxy/webapp lint && pnpm --filter @proxy/webapp typecheck && pnpm --filter @proxy/webapp build",
     "verify:desktop": "pnpm --filter @proxy/desktopapp lint && pnpm --filter @proxy/desktopapp typecheck && pnpm --filter @proxy/desktopapp build",
     "verify:mobile": "pnpm --filter @proxy/mobileapp lint && pnpm --filter @proxy/mobileapp typecheck && pnpm --filter @proxy/mobileapp build",
+    "verify:handoffs": "node ./scripts/validate-handoffs.mjs",
     "verify:all": "pnpm run verify:web && pnpm run verify:desktop && pnpm run verify:mobile",
     "doctor": "./scripts/doctor.sh"
   },

@@ -190,6 +190,9 @@ importers:
       '@proxy/shared-types':
         specifier: workspace:*
         version: link:../shared-types
+      '@proxy/validation':
+        specifier: workspace:*
+        version: link:../validation
 
   packages/providers:
     dependencies:
@@ -202,9 +205,18 @@ importers:
 
   packages/rewrite-engine:
     dependencies:
+      '@proxy/api-contracts':
+        specifier: workspace:*
+        version: link:../api-contracts
       '@proxy/domain':
         specifier: workspace:*
         version: link:../domain
+      '@proxy/profiles':
+        specifier: workspace:*
+        version: link:../profiles
+      '@proxy/validation':
+        specifier: workspace:*
+        version: link:../validation
 
   packages/shared-types: {}
 
@@ -225,6 +237,9 @@ importers:
 
   packages/validation:
     dependencies:
+      '@proxy/domain':
+        specifier: workspace:*
+        version: link:../domain
       zod:
         specifier: 4.3.6
         version: 4.3.6

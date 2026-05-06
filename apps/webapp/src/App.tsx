@@ -3,6 +3,7 @@ import { decideEscalation } from "@proxy/policy";
 import { loadDefaultProfile } from "@proxy/profiles";
 import { cloudProviderPlaceholder, localProviderPlaceholder, routeProvider } from "@proxy/providers";
 import { runRewritePipeline } from "@proxy/rewrite-engine";
+import { shapeExternalOutput } from "@proxy/rewrite-engine/suite-shaping";
 import { SectionCard } from "@proxy/ui";
 
 export default function App() {
@@ -31,6 +32,30 @@ export default function App() {
     preferredLocalProviderId: localProviderPlaceholder.id,
     fallbackCloudProviderId: cloudProviderPlaceholder.id
   });
+  const guardrailShape = shapeExternalOutput(
+    {
+      clientApp: "guardrail",
+      surface: "moderation-note",
+      profileId: profile.metadata.id,
+      purpose: "Summarize why a requested external action needs human review.",
+      draftText: "A suite app wants to send a customer-facing document with unresolved evidence.",
+      hardConstraints: ["Do not approve the action", "Name the review reason plainly"],
+      traceId: "proxy-web-guardrail-demo"
+    },
+    profile
+  );
+  const partitionShape = shapeExternalOutput(
+    {
+      clientApp: "partition",
+      surface: "operator-brief",
+      profileId: profile.metadata.id,
+      purpose: "Explain a read-only validation request without implying disk execution is available.",
+      draftText: "The lab request can be exported for disposable-image validation. Execution remains disabled.",
+      hardConstraints: ["Use read-only language", "Keep destructive action locked"],
+      traceId: "proxy-web-partition-demo"
+    },
+    profile
+  );
 
   return (
     <div className="page-shell">
@@ -95,6 +120,23 @@ export default function App() {
             <li>Google: {featureFlags.google ? "configured" : "not configured"}</li>
             <li>Cloud escalation: {environment.allowCloudEscalation ? "enabled" : "disabled"}</li>
           </ul>
+        </SectionCard>
+
+        <SectionCard
+          eyebrow="Suite Shaping"
+          title="Guardrail and Partition handoffs"
+          description="External outputs now use the same local profile before another app receives the text."
+        >
+          <dl className="detail-list">
+            <div>
+              <dt>Moderation note</dt>
+              <dd>{guardrailShape.text}</dd>
+            </div>
+            <div>
+              <dt>Operator brief</dt>
+              <dd>{partitionShape.text}</dd>
+            </div>
+          </dl>
         </SectionCard>
       </section>
     </div>

@@ -6,10 +6,12 @@
   "sideEffects": false,
   "exports": {
     ".": "./src/index.ts",
-    "./profile-tests": "./src/profile-tests.ts"
+    "./profile-tests": "./src/profile-tests.ts",
+    "./suite-shaping": "./src/suite-shaping.ts"
   },
   "types": "./src/index.ts",
   "dependencies": {
+    "@proxy/api-contracts": "workspace:*",
     "@proxy/domain": "workspace:*",
     "@proxy/profiles": "workspace:*",
     "@proxy/validation": "workspace:*"
