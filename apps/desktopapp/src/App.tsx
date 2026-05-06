@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState, type FormEvent } from "react";
+import { Fragment, useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { APP_NAME, REPO_NAME } from "@proxy/config";
 import type { RewriteReport, ValidationReport, VoiceProfile } from "@proxy/domain";
 import { DEFAULT_PROFILE_ARTIFACT_PATH, loadDefaultProfile } from "@proxy/profiles";
@@ -39,6 +39,7 @@ interface SavedPipelineRun {
 }
 
 const historyStorageKey = "tenra-proxy-desktop-history:v1";
+const profileStorageKey = "tenra-proxy-active-profile:v1";
 const maxSavedRuns = 40;
 
 const suitePromptTemplates = [
@@ -83,6 +84,46 @@ const persistSavedPipelineRuns = (runs: SavedPipelineRun[]) => {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(historyStorageKey, JSON.stringify(runs));
 };
+
+const cloneProfile = (profile: VoiceProfile): VoiceProfile =>
+  JSON.parse(JSON.stringify(profile)) as VoiceProfile;
+
+const loadStoredProfile = (): VoiceProfile => {
+  const fallback = loadDefaultProfile();
+
+  if (typeof window === "undefined") return fallback;
+
+  try {
+    const raw = window.localStorage.getItem(profileStorageKey);
+    const parsed = raw ? (JSON.parse(raw) as VoiceProfile) : null;
+
+    if (!parsed?.metadata?.name || !Array.isArray(parsed.bannedPhrases) || !Array.isArray(parsed.styleRules)) {
+      return fallback;
+    }
+
+    return parsed;
+  } catch {
+    return fallback;
+  }
+};
+
+const persistStoredProfile = (profile: VoiceProfile) => {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(profileStorageKey, JSON.stringify(profile));
+};
+
+const profileToDraft = (profile: VoiceProfile) => ({
+  name: profile.metadata.name,
+  tone: profile.tone,
+  bannedPhrases: profile.bannedPhrases.join("\n"),
+  styleRules: profile.styleRules.join("\n")
+});
+
+const splitLines = (value: string): string[] =>
+  value
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
 
 const formatSavedRunTime = (iso: string) =>
   new Intl.DateTimeFormat(undefined, {
@@ -136,6 +177,9 @@ const buildPipelineStages = (
 
 export default function App() {
   const defaultProfile = loadDefaultProfile();
+  const profileFileInputRef = useRef<HTMLInputElement>(null);
+  const [localProfile, setLocalProfile] = useState<VoiceProfile>(loadStoredProfile);
+  const [profileDraft, setProfileDraft] = useState(profileToDraft(localProfile));
   const [prompt, setPrompt] = useState(defaultPrompt);
   const [pipeline, setPipeline] = useState<PipelineSnapshot | null>(null);
   const [savedPipelineRuns, setSavedPipelineRuns] = useState<SavedPipelineRun[]>(
@@ -151,6 +195,10 @@ export default function App() {
     persistSavedPipelineRuns(savedPipelineRuns);
   }, [savedPipelineRuns]);
 
+  useEffect(() => {
+    persistStoredProfile(localProfile);
+  }, [localProfile]);
+
   const handleRun = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
@@ -165,7 +213,7 @@ export default function App() {
 
     try {
       const draft = await provider.generateDraft(trimmedPrompt);
-      const profile = loadDefaultProfile();
+      const profile = cloneProfile(localProfile);
       const rewrite = rewriteDraft(draft.text, profile);
       const validation = validateRewrittenOutput(rewrite.rewritten, profile);
       const snapshot: PipelineSnapshot = {
@@ -226,6 +274,70 @@ export default function App() {
     setSavedPipelineRuns((current) => current.filter((savedRun) => savedRun.id !== savedRunId));
   };
 
+  const saveProfileDraft = () => {
+    const now = Date.now();
+    const nextStyleRules = splitLines(profileDraft.styleRules);
+
+    setLocalProfile((current) => ({
+      ...current,
+      metadata: {
+        ...current.metadata,
+        name: profileDraft.name.trim() || current.metadata.name,
+        updatedAt: now
+      },
+      tone: profileDraft.tone.trim() || current.tone,
+      bannedPhrases: splitLines(profileDraft.bannedPhrases),
+      styleRules: nextStyleRules,
+      rewriteDirectives: nextStyleRules,
+      rules: nextStyleRules.map((rule, index) => ({
+        kind: "style",
+        label: `Style rule ${index + 1}`,
+        instruction: rule
+      }))
+    }));
+    setError(null);
+  };
+
+  const resetProfileDraft = () => {
+    const nextProfile = loadDefaultProfile();
+    setLocalProfile(nextProfile);
+    setProfileDraft(profileToDraft(nextProfile));
+    setError(null);
+  };
+
+  const exportProfile = () => {
+    const blob = new Blob([JSON.stringify(localProfile, null, 2)], {
+      type: "application/json;charset=utf-8"
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download = `${localProfile.metadata.name.toLowerCase().replace(/[^a-z0-9]+/g, "-") || "proxy-profile"}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const importProfile = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+
+    if (!file) return;
+
+    try {
+      const parsed = JSON.parse(await file.text()) as VoiceProfile;
+      if (!parsed?.metadata?.name || !Array.isArray(parsed.bannedPhrases) || !Array.isArray(parsed.styleRules)) {
+        throw new Error("Profile JSON is missing required fields.");
+      }
+
+      setLocalProfile(parsed);
+      setProfileDraft(profileToDraft(parsed));
+      setError(null);
+    } catch (importError) {
+      setError(importError instanceof Error ? importError.message : "Profile import failed.");
+    }
+  };
+
   const copyFinalOutput = async () => {
     if (!pipeline) return;
 
@@ -236,7 +348,7 @@ export default function App() {
     }
   };
 
-  const activeProfile = pipeline?.profile ?? defaultProfile;
+  const activeProfile = pipeline?.profile ?? localProfile ?? defaultProfile;
   const stages = buildPipelineStages(prompt, activeProfile, pipeline);
 
   return (
@@ -343,6 +455,80 @@ export default function App() {
                 <dd>profiles/default/tests/</dd>
               </div>
             </dl>
+          </SectionCard>
+        </div>
+
+        <div className="span-12">
+          <SectionCard
+            eyebrow="Local Profile"
+            title="Edit active voice profile"
+            description="The desktop pipeline uses this local profile for rewriting and validation. Export it when it should become a portable artifact."
+          >
+            <div className="profile-editor-grid">
+              <label className="profile-editor-field">
+                <span>Profile name</span>
+                <input
+                  value={profileDraft.name}
+                  onChange={(event) =>
+                    setProfileDraft((current) => ({ ...current, name: event.target.value }))
+                  }
+                />
+              </label>
+              <label className="profile-editor-field">
+                <span>Tone</span>
+                <input
+                  value={profileDraft.tone}
+                  onChange={(event) =>
+                    setProfileDraft((current) => ({ ...current, tone: event.target.value }))
+                  }
+                />
+              </label>
+              <label className="profile-editor-field">
+                <span>Banned phrases</span>
+                <textarea
+                  rows={5}
+                  value={profileDraft.bannedPhrases}
+                  onChange={(event) =>
+                    setProfileDraft((current) => ({ ...current, bannedPhrases: event.target.value }))
+                  }
+                />
+              </label>
+              <label className="profile-editor-field">
+                <span>Style rules</span>
+                <textarea
+                  rows={5}
+                  value={profileDraft.styleRules}
+                  onChange={(event) =>
+                    setProfileDraft((current) => ({ ...current, styleRules: event.target.value }))
+                  }
+                />
+              </label>
+            </div>
+            <div className="form-actions profile-editor-actions">
+              <button className="run-button" type="button" onClick={saveProfileDraft}>
+                Save Profile
+              </button>
+              <button className="secondary-button" type="button" onClick={exportProfile}>
+                Export Profile
+              </button>
+              <button
+                className="secondary-button"
+                type="button"
+                onClick={() => profileFileInputRef.current?.click()}
+              >
+                Import Profile
+              </button>
+              <button className="secondary-button" type="button" onClick={resetProfileDraft}>
+                Reset Default
+              </button>
+              <input
+                ref={profileFileInputRef}
+                className="hidden-file-input"
+                type="file"
+                accept="application/json"
+                onChange={importProfile}
+              />
+            </div>
           </SectionCard>
         </div>
 

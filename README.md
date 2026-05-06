@@ -50,6 +50,9 @@ pipeline locally.
 Desktop pipeline runs are saved in local browser storage so useful rewrites can
 be reopened without cloud sync.
 
+The desktop app also supports editing the active local voice profile, importing
+profile JSON, and exporting the current profile for reuse.
+
 For a local LLM, run Ollama and set:
 
 ```bash

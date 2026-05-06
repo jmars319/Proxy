@@ -135,6 +135,57 @@ textarea {
   gap: 14px;
 }
 
+.profile-editor-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.profile-editor-field {
+  display: grid;
+  gap: 8px;
+}
+
+.profile-editor-field span {
+  color: #6a7b6a;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.profile-editor-field input,
+.profile-editor-field textarea {
+  width: 100%;
+  border: 1px solid rgba(35, 43, 51, 0.12);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.95);
+  color: #20272f;
+  padding: 14px 16px;
+  outline: none;
+}
+
+.profile-editor-field textarea {
+  min-height: 132px;
+  line-height: 1.55;
+  resize: vertical;
+}
+
+.profile-editor-actions {
+  justify-content: flex-start;
+  margin-top: 16px;
+}
+
+.hidden-file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 .field-label {
   color: #6a7b6a;
   font-size: 0.76rem;
@@ -528,6 +579,10 @@ textarea {
   .span-8,
   .span-12 {
     grid-column: span 12;
+  }
+
+  .profile-editor-grid {
+    grid-template-columns: 1fr;
   }
 
   .history-run-item {
