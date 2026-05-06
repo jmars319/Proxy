@@ -13,6 +13,7 @@ import {
   parseShapeExternalOutputPresetRequest,
   parseShapeExternalOutputRequest
 } from "@proxy/validation";
+import { readPersistedSuiteProfilePresetOverrides } from "./suite-profile-store";
 
 export interface ShapeExternalOutputApiResponse {
   ok: boolean;
@@ -31,7 +32,10 @@ function applySavedProfilePreset(
   request: ShapeExternalOutputRequest,
   presetKey?: string
 ): ShapeExternalOutputRequest {
-  const overrides = readSuiteProfilePresetOverrides(process.env);
+  const overrides = {
+    ...readSuiteProfilePresetOverrides(process.env),
+    ...readPersistedSuiteProfilePresetOverrides()
+  };
   const override = (presetKey ? overrides[presetKey] : undefined) ?? overrides[request.clientApp];
 
   if (!override) {

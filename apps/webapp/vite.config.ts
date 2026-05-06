@@ -4,6 +4,10 @@ import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 import { readSuiteEndpointConfig } from "@proxy/config";
 import { handleShapeExternalOutputPayload } from "./src/shaping-api";
+import {
+  readPersistedSuiteProfilePresetOverrides,
+  writePersistedSuiteProfilePresetOverrides
+} from "./src/suite-profile-store";
 
 const currentDirectory = path.dirname(fileURLToPath(import.meta.url));
 
@@ -72,6 +76,55 @@ export default defineConfig({
               })
             );
           }
+        });
+
+        server.middlewares.use("/api/suite-profile-overrides", async (request, response, next) => {
+          if (request.method !== "GET" && request.method !== "POST") {
+            next();
+            return;
+          }
+
+          try {
+            const overrides =
+              request.method === "POST"
+                ? writePersistedSuiteProfilePresetOverrides(
+                    JSON.parse((await readRequestBody(request)) || "{}").overrides ?? {}
+                  )
+                : readPersistedSuiteProfilePresetOverrides();
+            response.statusCode = 200;
+            response.setHeader("Content-Type", "application/json; charset=utf-8");
+            response.end(JSON.stringify({ ok: true, overrides }, null, 2));
+          } catch (error) {
+            response.statusCode = 400;
+            response.setHeader("Content-Type", "application/json; charset=utf-8");
+            response.end(JSON.stringify({ ok: false, errors: [error instanceof Error ? error.message : "Suite profile store failed."] }));
+          }
+        });
+
+        server.middlewares.use("/api/suite-health", async (request, response, next) => {
+          if (request.method !== "GET") {
+            next();
+            return;
+          }
+
+          response.statusCode = 200;
+          response.setHeader("Content-Type", "application/json; charset=utf-8");
+          response.end(
+            JSON.stringify(
+              {
+                ok: true,
+                app: "tenra Proxy",
+                checkedAt: new Date().toISOString(),
+                endpoints: {
+                  shapeExternalOutput: "/api/shape-external-output",
+                  suiteProfileOverrides: "/api/suite-profile-overrides"
+                },
+                allowedOrigins: readSuiteEndpointConfig(process.env).allowedOrigins
+              },
+              null,
+              2
+            )
+          );
         });
       }
     }

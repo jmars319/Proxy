@@ -16,7 +16,7 @@ import {
   suiteShapingPresets
 } from "@proxy/rewrite-engine/suite-shaping";
 import { SectionCard } from "@proxy/ui";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const visibleSuitePresetIds = [
   "scout-outreach",
@@ -36,6 +36,8 @@ export default function App() {
   const [suiteOverrides, setSuiteOverrides] = useState<SuiteProfilePresetOverrides>(() =>
     readSuiteProfilePresetOverrides(import.meta.env as unknown as Record<string, string | undefined>)
   );
+  const [profileStoreNotice, setProfileStoreNotice] = useState("Profile overrides loaded from environment.");
+  const [suiteHealth, setSuiteHealth] = useState<Record<string, unknown> | null>(null);
   const rewritePreview = runRewritePipeline(
     "  tenra Proxy treats upstream model output as draft material before it becomes user-facing language  ",
     {
@@ -105,6 +107,38 @@ export default function App() {
     await navigator.clipboard.writeText(JSON.stringify(suiteOverrides, null, 2));
   }
 
+  async function saveSuiteOverrides() {
+    const response = await fetch("/api/suite-profile-overrides", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ overrides: suiteOverrides })
+    });
+    const body = (await response.json()) as { ok?: boolean; errors?: string[]; overrides?: SuiteProfilePresetOverrides };
+    if (!response.ok || !body.ok) {
+      setProfileStoreNotice(body.errors?.join(", ") ?? "Profile override save failed.");
+      return;
+    }
+    setSuiteOverrides(body.overrides ?? suiteOverrides);
+    setProfileStoreNotice("Profile overrides saved to the local Proxy profile store.");
+  }
+
+  useEffect(() => {
+    void fetch("/api/suite-profile-overrides")
+      .then((response) => response.json())
+      .then((body: { ok?: boolean; overrides?: SuiteProfilePresetOverrides }) => {
+        if (body.ok && body.overrides) {
+          setSuiteOverrides((current) => ({ ...current, ...body.overrides }));
+          setProfileStoreNotice("Profile overrides loaded from the local Proxy profile store.");
+        }
+      })
+      .catch(() => setProfileStoreNotice("Profile override API is unavailable in this build."));
+
+    void fetch("/api/suite-health")
+      .then((response) => response.json())
+      .then((body: Record<string, unknown>) => setSuiteHealth(body))
+      .catch(() => setSuiteHealth({ ok: false, error: "Suite health endpoint unavailable." }));
+  }, []);
+
   return (
     <div className="page-shell">
       <header className="hero">
@@ -160,13 +194,14 @@ export default function App() {
         <SectionCard
           eyebrow="Status"
           title="Configured capabilities"
-          description="Provider integrations stay separated from profile ownership and validation."
+          description="Provider integrations stay separated from profile ownership, validation, and delivery health."
         >
           <ul className="token-list">
             <li>OpenAI: {featureFlags.openai ? "configured" : "not configured"}</li>
             <li>Anthropic: {featureFlags.anthropic ? "configured" : "not configured"}</li>
             <li>Google: {featureFlags.google ? "configured" : "not configured"}</li>
             <li>Cloud escalation: {environment.allowCloudEscalation ? "enabled" : "disabled"}</li>
+            <li>Suite health: {suiteHealth?.ok ? "available" : "unavailable"}</li>
           </ul>
         </SectionCard>
 
@@ -198,11 +233,11 @@ export default function App() {
                   <label>
                     Profile ID
                     <input
-                      defaultValue={shape.override?.profileId ?? "profile:default"}
+                      value={suiteOverrides[shape.presetId]?.profileId ?? "profile:default"}
                       onChange={(event) =>
                         updateSuiteOverride(shape.presetId, {
                           profileId: event.currentTarget.value,
-                          hardConstraintsText: shape.override?.hardConstraints?.join("\n") ?? ""
+                          hardConstraintsText: suiteOverrides[shape.presetId]?.hardConstraints?.join("\n") ?? ""
                         })
                       }
                     />
@@ -210,10 +245,10 @@ export default function App() {
                   <label>
                     Extra constraints
                     <textarea
-                      defaultValue={shape.override?.hardConstraints?.join("\n") ?? ""}
+                      value={suiteOverrides[shape.presetId]?.hardConstraints?.join("\n") ?? ""}
                       onChange={(event) =>
                         updateSuiteOverride(shape.presetId, {
-                          profileId: shape.override?.profileId ?? "profile:default",
+                          profileId: suiteOverrides[shape.presetId]?.profileId ?? "profile:default",
                           hardConstraintsText: event.currentTarget.value
                         })
                       }
@@ -223,8 +258,12 @@ export default function App() {
               </div>
             ))}
           </div>
+          <p>{profileStoreNotice}</p>
           <button type="button" onClick={() => void copySuiteOverrides()}>
             Copy env JSON
+          </button>
+          <button type="button" onClick={() => void saveSuiteOverrides()}>
+            Save local profile store
           </button>
         </SectionCard>
       </section>
