@@ -2,7 +2,13 @@ import fs from "node:fs";
 import path from "node:path";
 
 const fixtureDir = path.resolve("fixtures/handoffs");
-const expectedSurfaces = new Set(["moderation-note", "operator-brief", "email", "report"]);
+const expectedSurfaces = new Set(["moderation-note", "operator-brief", "email", "report", "internal-note"]);
+const expectedPresetIds = new Set([
+  "scout-outreach",
+  "guardrail-review",
+  "partition-operator-brief",
+  "assembly-document-note"
+]);
 
 function listJsonFiles(dir) {
   if (!fs.existsSync(dir)) return [];
@@ -19,6 +25,12 @@ for (const file of files) {
   const payload = JSON.parse(fs.readFileSync(file, "utf8"));
   if (!payload || typeof payload !== "object" || typeof payload.traceId !== "string") {
     throw new Error(`${file} must contain a shape request with a traceId.`);
+  }
+  if (typeof payload.presetId === "string") {
+    if (!expectedPresetIds.has(payload.presetId)) {
+      throw new Error(`${file} uses an unsupported shaping preset: ${payload.presetId}`);
+    }
+    continue;
   }
   if (!expectedSurfaces.has(payload.surface)) {
     throw new Error(`${file} uses an unsupported output surface: ${payload.surface}`);

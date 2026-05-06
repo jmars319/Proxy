@@ -35,6 +35,12 @@ export type ProxyOutputSurface =
   | "website-copy"
   | "internal-note";
 
+export type ProxySuiteShapingPresetId =
+  | "scout-outreach"
+  | "guardrail-review"
+  | "partition-operator-brief"
+  | "assembly-document-note";
+
 export interface ShapeExternalOutputRequest {
   clientApp: ProxyClientApp;
   surface: ProxyOutputSurface;
@@ -48,6 +54,16 @@ export interface ShapeExternalOutputRequest {
     exportedAt?: string;
   };
   hardConstraints: string[];
+  traceId: string;
+}
+
+export interface ShapeExternalOutputPresetRequest {
+  presetId: ProxySuiteShapingPresetId;
+  draftText: string;
+  profileId?: ProfileId;
+  audience?: string;
+  sourceArtifact?: ShapeExternalOutputRequest["sourceArtifact"];
+  hardConstraints?: string[];
   traceId: string;
 }
 

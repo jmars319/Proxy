@@ -70,6 +70,67 @@ export const providerConfigSchema = z.object({
   apiKeyEnvVar: z.string().min(1).optional()
 });
 
+const proxyClientAppSchema = z.enum([
+  "align",
+  "assembly",
+  "derive",
+  "facet",
+  "guardrail",
+  "ledger",
+  "partition",
+  "registry",
+  "scout",
+  "sentinel",
+  "vicina",
+  "unknown"
+]);
+
+const proxyOutputSurfaceSchema = z.enum([
+  "email",
+  "letter",
+  "moderation-note",
+  "operator-brief",
+  "public-listing",
+  "proposal",
+  "report",
+  "support-note",
+  "website-copy",
+  "internal-note"
+]);
+
+const sourceArtifactSchema = z.object({
+  schema: z.string().min(1),
+  artifactId: z.string().min(1).optional(),
+  exportedAt: z.string().min(1).optional()
+});
+
+export const shapeExternalOutputRequestSchema = z.object({
+  clientApp: proxyClientAppSchema,
+  surface: proxyOutputSurfaceSchema,
+  profileId: profileIdSchema,
+  purpose: z.string().min(1),
+  draftText: z.string().min(1),
+  audience: z.string().min(1).optional(),
+  sourceArtifact: sourceArtifactSchema.optional(),
+  hardConstraints: z.array(z.string().min(1)).default([]),
+  traceId: z.string().min(1)
+});
+
+export const shapeExternalOutputPresetRequestSchema = z.object({
+  presetId: z.enum([
+    "scout-outreach",
+    "guardrail-review",
+    "partition-operator-brief",
+    "assembly-document-note"
+  ]),
+  draftText: z.string().min(1),
+  profileId: profileIdSchema.optional(),
+  audience: z.string().min(1).optional(),
+  sourceArtifact: sourceArtifactSchema.optional(),
+  hardConstraints: z.array(z.string().min(1)).optional(),
+  traceId: z.string().min(1)
+});
+
 export type ProfileMetadataInput = z.infer<typeof profileMetadataSchema>;
 export type PortableProfileArtifactInput = z.infer<typeof portableProfileArtifactSchema>;
 export type RewriteTraceKindInput = z.infer<typeof rewriteTraceKindSchema>;
@@ -77,6 +138,10 @@ export type ProfileRewriteTestFixtureInput = z.infer<typeof profileRewriteTestFi
 export type GenerateDraftRequestInput = z.infer<typeof generateDraftRequestSchema>;
 export type ValidationResultInput = z.infer<typeof validationResultSchema>;
 export type ProviderConfigInput = z.infer<typeof providerConfigSchema>;
+export type ShapeExternalOutputRequestInput = z.infer<typeof shapeExternalOutputRequestSchema>;
+export type ShapeExternalOutputPresetRequestInput = z.infer<
+  typeof shapeExternalOutputPresetRequestSchema
+>;
 
 export const rewrittenOutputSchema = z.string().trim().min(1).max(600);
 
@@ -88,6 +153,12 @@ export const parsePortableProfileArtifact = (input: unknown) =>
 
 export const parseProfileRewriteTestFixture = (input: unknown) =>
   profileRewriteTestFixtureSchema.safeParse(input);
+
+export const parseShapeExternalOutputRequest = (input: unknown) =>
+  shapeExternalOutputRequestSchema.safeParse(input);
+
+export const parseShapeExternalOutputPresetRequest = (input: unknown) =>
+  shapeExternalOutputPresetRequestSchema.safeParse(input);
 
 export const validateRewrittenOutput = (
   output: string,

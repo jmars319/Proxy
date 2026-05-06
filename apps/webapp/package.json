@@ -10,12 +10,14 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
+    "@proxy/api-contracts": "workspace:*",
     "@proxy/config": "workspace:*",
     "@proxy/policy": "workspace:*",
     "@proxy/profiles": "workspace:*",
     "@proxy/providers": "workspace:*",
     "@proxy/rewrite-engine": "workspace:*",
     "@proxy/ui": "workspace:*",
+    "@proxy/validation": "workspace:*",
     "react": "19.2.0",
     "react-dom": "19.2.0"
   },

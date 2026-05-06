@@ -106,6 +106,9 @@ importers:
 
   apps/webapp:
     dependencies:
+      '@proxy/api-contracts':
+        specifier: workspace:*
+        version: link:../../packages/api-contracts
       '@proxy/config':
         specifier: workspace:*
         version: link:../../packages/config
@@ -124,6 +127,9 @@ importers:
       '@proxy/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      '@proxy/validation':
+        specifier: workspace:*
+        version: link:../../packages/validation
       react:
         specifier: 19.2.0
         version: 19.2.0

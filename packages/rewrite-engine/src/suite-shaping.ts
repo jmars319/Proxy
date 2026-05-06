@@ -1,5 +1,7 @@
 import type {
+  ProxySuiteShapingPresetId,
   ShapeExternalOutputRequest,
+  ShapeExternalOutputPresetRequest,
   ShapeExternalOutputResponse
 } from "@proxy/api-contracts";
 import type { VoiceProfile } from "@proxy/domain";
@@ -18,6 +20,57 @@ const surfaceIntros: Record<ShapeExternalOutputRequest["surface"], string> = {
   "website-copy": "Shape this as website copy.",
   "internal-note": "Shape this as an internal note."
 };
+
+export const suiteShapingPresets: Record<
+  ProxySuiteShapingPresetId,
+  Pick<ShapeExternalOutputRequest, "clientApp" | "surface" | "purpose" | "audience" | "hardConstraints">
+> = {
+  "scout-outreach": {
+    clientApp: "scout",
+    surface: "email",
+    purpose: "Turn an opportunity handoff into restrained outreach grounded only in provided evidence.",
+    audience: "prospect or local partner",
+    hardConstraints: ["Do not invent claims", "Reference only supplied evidence", "Keep the ask specific"]
+  },
+  "guardrail-review": {
+    clientApp: "guardrail",
+    surface: "moderation-note",
+    purpose: "Explain a policy decision with a calm review posture.",
+    audience: "operator reviewing an external action",
+    hardConstraints: ["Do not imply approval unless the decision allows it", "Name the review reason plainly"]
+  },
+  "partition-operator-brief": {
+    clientApp: "partition",
+    surface: "operator-brief",
+    purpose: "Explain a read-only validation request without implying execution is available.",
+    audience: "local operator",
+    hardConstraints: ["Use read-only language", "Keep destructive action locked"]
+  },
+  "assembly-document-note": {
+    clientApp: "assembly",
+    surface: "internal-note",
+    purpose: "Shape a content workflow note before it becomes customer-facing copy.",
+    audience: "content operator",
+    hardConstraints: ["Keep source attribution visible", "Do not publish directly"]
+  }
+};
+
+export function buildShapeExternalOutputRequestFromPreset(
+  request: ShapeExternalOutputPresetRequest,
+  fallbackProfileId: ShapeExternalOutputRequest["profileId"]
+): ShapeExternalOutputRequest {
+  const preset = suiteShapingPresets[request.presetId];
+
+  return {
+    ...preset,
+    profileId: request.profileId ?? fallbackProfileId,
+    draftText: request.draftText,
+    audience: request.audience ?? preset.audience,
+    sourceArtifact: request.sourceArtifact,
+    hardConstraints: [...preset.hardConstraints, ...(request.hardConstraints ?? [])],
+    traceId: request.traceId
+  };
+}
 
 export function shapeExternalOutput(
   request: ShapeExternalOutputRequest,
