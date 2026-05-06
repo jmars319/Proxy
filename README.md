@@ -47,6 +47,9 @@ The desktop app is functional without a cloud key. By default it uses a local
 rule provider to create draft material, then runs the rewrite and validation
 pipeline locally.
 
+Desktop pipeline runs are saved in local browser storage so useful rewrites can
+be reopened without cloud sync.
+
 For a local LLM, run Ollama and set:
 
 ```bash

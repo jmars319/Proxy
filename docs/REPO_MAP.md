@@ -8,7 +8,7 @@ Primary product surface. This is the most complete shell in the repo and is wher
 
 - Status: foundational
 - Stack: Tauri + Vite + React + TypeScript
-- Role: workspace shell for profiles, providers, policy, diagnostics, and generation flow orchestration
+- Role: workspace shell for profiles, providers, policy, diagnostics, saved local run history, and generation flow orchestration
 
 ### `apps/webapp`
 
@@ -38,7 +38,7 @@ Future-facing scaffold. It exists so the monorepo is standardized from day one, 
 - `packages/profiles`: first-class profile artifact shapes and profile file helpers.
 - `packages/rewrite-engine`: rewrite pipeline interfaces and deterministic starter passes.
 - `packages/policy`: allow/deny rules, output policy results, and escalation policy decisions.
-- `packages/providers`: provider abstraction layer with a mock provider and routing placeholder.
+- `packages/providers`: provider abstraction layer with deterministic local, Ollama, OpenAI-compatible, and cloud routing options.
 - `packages/storage`: local-first storage interfaces for profiles, settings, and generation history.
 
 ### Minimal placeholder packages

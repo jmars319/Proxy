@@ -1,4 +1,4 @@
-import { Fragment, useState, type FormEvent } from "react";
+import { Fragment, useEffect, useState, type FormEvent } from "react";
 import { APP_NAME, REPO_NAME } from "@proxy/config";
 import type { RewriteReport, ValidationReport, VoiceProfile } from "@proxy/domain";
 import { DEFAULT_PROFILE_ARTIFACT_PATH, loadDefaultProfile } from "@proxy/profiles";
@@ -31,6 +31,16 @@ interface PipelineStage {
   note: string;
 }
 
+interface SavedPipelineRun {
+  id: string;
+  createdAt: string;
+  providerLabel: string;
+  snapshot: PipelineSnapshot;
+}
+
+const historyStorageKey = "tenra-proxy-desktop-history:v1";
+const maxSavedRuns = 40;
+
 const suitePromptTemplates = [
   {
     label: "Assembly brief",
@@ -48,6 +58,39 @@ const suitePromptTemplates = [
 
 const getFinalOutput = (rewrite: RewriteReport, validation: ValidationReport): string =>
   validation.valid ? rewrite.rewritten : "Validation blocked the rewritten output.";
+
+const createId = () =>
+  typeof crypto !== "undefined" && "randomUUID" in crypto
+    ? crypto.randomUUID()
+    : `proxy-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
+const nowIso = () => new Date().toISOString();
+
+const loadSavedPipelineRuns = (): SavedPipelineRun[] => {
+  if (typeof window === "undefined") return [];
+
+  try {
+    const raw = window.localStorage.getItem(historyStorageKey);
+    const parsed = raw ? (JSON.parse(raw) as SavedPipelineRun[]) : [];
+
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+
+const persistSavedPipelineRuns = (runs: SavedPipelineRun[]) => {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(historyStorageKey, JSON.stringify(runs));
+};
+
+const formatSavedRunTime = (iso: string) =>
+  new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit"
+  }).format(new Date(iso));
 
 const buildPipelineStages = (
   prompt: string,
@@ -95,11 +138,18 @@ export default function App() {
   const defaultProfile = loadDefaultProfile();
   const [prompt, setPrompt] = useState(defaultPrompt);
   const [pipeline, setPipeline] = useState<PipelineSnapshot | null>(null);
+  const [savedPipelineRuns, setSavedPipelineRuns] = useState<SavedPipelineRun[]>(
+    loadSavedPipelineRuns
+  );
   const [profileTestReport, setProfileTestReport] = useState<ProfileTestReport | null>(null);
   const [isRunning, setIsRunning] = useState(false);
   const [isRunningProfileTests, setIsRunningProfileTests] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [profileTestError, setProfileTestError] = useState<string | null>(null);
+
+  useEffect(() => {
+    persistSavedPipelineRuns(savedPipelineRuns);
+  }, [savedPipelineRuns]);
 
   const handleRun = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -118,8 +168,7 @@ export default function App() {
       const profile = loadDefaultProfile();
       const rewrite = rewriteDraft(draft.text, profile);
       const validation = validateRewrittenOutput(rewrite.rewritten, profile);
-
-      setPipeline({
+      const snapshot: PipelineSnapshot = {
         prompt: trimmedPrompt,
         profile,
         rawDraft: draft.text,
@@ -127,7 +176,20 @@ export default function App() {
         validation,
         finalOutput: getFinalOutput(rewrite, validation),
         latencyMs: draft.latencyMs
-      });
+      };
+
+      setPipeline(snapshot);
+      setSavedPipelineRuns((current) =>
+        [
+          {
+            id: createId(),
+            createdAt: nowIso(),
+            providerLabel: provider.descriptor.label,
+            snapshot
+          },
+          ...current
+        ].slice(0, maxSavedRuns)
+      );
     } catch {
       setError("The local provider pipeline failed unexpectedly.");
     } finally {
@@ -152,6 +214,16 @@ export default function App() {
   const applySuitePrompt = (nextPrompt: string) => {
     setPrompt(nextPrompt);
     setError(null);
+  };
+
+  const restoreSavedRun = (savedRun: SavedPipelineRun) => {
+    setPrompt(savedRun.snapshot.prompt);
+    setPipeline(savedRun.snapshot);
+    setError(null);
+  };
+
+  const removeSavedRun = (savedRunId: string) => {
+    setSavedPipelineRuns((current) => current.filter((savedRun) => savedRun.id !== savedRunId));
   };
 
   const copyFinalOutput = async () => {
@@ -271,6 +343,49 @@ export default function App() {
                 <dd>profiles/default/tests/</dd>
               </div>
             </dl>
+          </SectionCard>
+        </div>
+
+        <div className="span-12">
+          <SectionCard
+            eyebrow="Local History"
+            title="Saved pipeline runs"
+            description="Runs are stored on this desktop so useful rewrites can be reopened without cloud sync."
+          >
+            <div className="history-run-list">
+              {savedPipelineRuns.length > 0 ? (
+                savedPipelineRuns.map((savedRun) => (
+                  <article className="history-run-item" key={savedRun.id}>
+                    <div>
+                      <strong>{savedRun.snapshot.prompt}</strong>
+                      <span>
+                        {formatSavedRunTime(savedRun.createdAt)} / {savedRun.providerLabel} /{" "}
+                        {savedRun.snapshot.latencyMs}ms
+                      </span>
+                      <p>{savedRun.snapshot.finalOutput}</p>
+                    </div>
+                    <div className="history-run-actions">
+                      <button
+                        className="secondary-button"
+                        type="button"
+                        onClick={() => restoreSavedRun(savedRun)}
+                      >
+                        Restore
+                      </button>
+                      <button
+                        className="secondary-button"
+                        type="button"
+                        onClick={() => removeSavedRun(savedRun.id)}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </article>
+                ))
+              ) : (
+                <p className="empty-copy">No saved runs yet.</p>
+              )}
+            </div>
           </SectionCard>
         </div>
 

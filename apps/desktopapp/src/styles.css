@@ -247,7 +247,8 @@ textarea {
 
 .detail-stack,
 .change-list,
-.trace-list {
+.trace-list,
+.history-run-list {
   margin: 0;
   padding: 0;
   list-style: none;
@@ -356,6 +357,63 @@ textarea {
 .trace-list {
   display: grid;
   gap: 10px;
+}
+
+.history-run-list {
+  display: grid;
+  gap: 12px;
+}
+
+.history-run-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: start;
+  padding: 16px;
+  border: 1px solid rgba(35, 43, 51, 0.06);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.history-run-item strong,
+.history-run-item span,
+.history-run-item p {
+  display: block;
+}
+
+.history-run-item strong {
+  overflow: hidden;
+  color: #273038;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.history-run-item span {
+  margin-top: 6px;
+  color: #5b6772;
+  font-size: 0.9rem;
+}
+
+.history-run-item p,
+.empty-copy {
+  margin: 10px 0 0;
+  color: #273038;
+  line-height: 1.55;
+}
+
+.history-run-item p {
+  display: -webkit-box;
+  max-height: 4.7em;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.history-run-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
 }
 
 .trace-item {
@@ -470,5 +528,13 @@ textarea {
   .span-8,
   .span-12 {
     grid-column: span 12;
+  }
+
+  .history-run-item {
+    grid-template-columns: 1fr;
+  }
+
+  .history-run-actions {
+    justify-content: flex-start;
   }
 }
