@@ -1,0 +1,18 @@
+{
+  "clientApp": "assembly",
+  "surface": "internal-note",
+  "profileId": "profile:default",
+  "purpose": "Smoke-test Assembly direct delivery to Proxy.",
+  "draftText": "Assembly received a Scout opportunity and is smoke-testing direct Proxy shaping.",
+  "audience": "content operator",
+  "sourceArtifact": {
+    "schema": "tenra-assembly.proxy-notice-handoff.v1",
+    "artifactId": "content_direct_delivery_smoke",
+    "exportedAt": "2026-05-06T18:30:00.000Z"
+  },
+  "hardConstraints": [
+    "Do not publish directly",
+    "Keep Scout source context visible"
+  ],
+  "traceId": "suite-direct-delivery-smoke"
+}

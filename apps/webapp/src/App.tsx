@@ -1,7 +1,14 @@
-import { APP_NAME, readAppEnvironment, readProviderFeatureFlags } from "@proxy/config";
+import {
+  APP_NAME,
+  readAppEnvironment,
+  readProviderFeatureFlags,
+  readSuiteProfilePresetOverrides,
+  type SuiteProfilePresetOverrides
+} from "@proxy/config";
 import { decideEscalation } from "@proxy/policy";
 import { loadDefaultProfile } from "@proxy/profiles";
 import { cloudProviderPlaceholder, localProviderPlaceholder, routeProvider } from "@proxy/providers";
+import type { ShapeExternalOutputRequest } from "@proxy/api-contracts";
 import { runRewritePipeline } from "@proxy/rewrite-engine";
 import {
   buildShapeExternalOutputRequestFromPreset,
@@ -9,6 +16,7 @@ import {
   suiteShapingPresets
 } from "@proxy/rewrite-engine/suite-shaping";
 import { SectionCard } from "@proxy/ui";
+import { useState } from "react";
 
 const visibleSuitePresetIds = [
   "scout-outreach",
@@ -25,6 +33,9 @@ export default function App() {
     import.meta.env as unknown as Record<string, string | undefined>
   );
   const profile = loadDefaultProfile();
+  const [suiteOverrides, setSuiteOverrides] = useState<SuiteProfilePresetOverrides>(() =>
+    readSuiteProfilePresetOverrides(import.meta.env as unknown as Record<string, string | undefined>)
+  );
   const rewritePreview = runRewritePipeline(
     "  tenra Proxy treats upstream model output as draft material before it becomes user-facing language  ",
     {
@@ -44,7 +55,7 @@ export default function App() {
     fallbackCloudProviderId: cloudProviderPlaceholder.id
   });
   const suitePresetShapes = visibleSuitePresetIds.map((presetId) => {
-    const request = buildShapeExternalOutputRequestFromPreset(
+    const presetRequest = buildShapeExternalOutputRequestFromPreset(
       {
         presetId,
         draftText:
@@ -59,13 +70,40 @@ export default function App() {
       },
       profile.metadata.id
     );
+    const override = suiteOverrides[presetId] ?? suiteOverrides[presetRequest.clientApp];
+    const request = {
+      ...presetRequest,
+      profileId: (override?.profileId ?? presetRequest.profileId) as ShapeExternalOutputRequest["profileId"],
+      hardConstraints: [...presetRequest.hardConstraints, ...(override?.hardConstraints ?? [])]
+    };
 
     return {
       presetId,
       preset: suiteShapingPresets[presetId],
+      override,
       result: shapeExternalOutput(request, profile)
     };
   });
+
+  function updateSuiteOverride(
+    presetId: (typeof visibleSuitePresetIds)[number],
+    update: { profileId?: string; hardConstraintsText?: string }
+  ) {
+    setSuiteOverrides((current) => ({
+      ...current,
+      [presetId]: {
+        profileId: update.profileId,
+        hardConstraints: update.hardConstraintsText
+          ?.split("\n")
+          .map((line) => line.trim())
+          .filter(Boolean)
+      }
+    }));
+  }
+
+  async function copySuiteOverrides() {
+    await navigator.clipboard.writeText(JSON.stringify(suiteOverrides, null, 2));
+  }
 
   return (
     <div className="page-shell">
@@ -145,6 +183,49 @@ export default function App() {
               </div>
             ))}
           </dl>
+        </SectionCard>
+
+        <SectionCard
+          eyebrow="Suite Profiles"
+          title="Preset override editor"
+          description="Preview per-app and per-preset profile overrides before promoting them into PROXY_SUITE_PROFILE_PRESETS."
+        >
+          <div className="detail-list">
+            {suitePresetShapes.map((shape) => (
+              <div key={`${shape.presetId}-override`}>
+                <dt>{shape.presetId}</dt>
+                <dd>
+                  <label>
+                    Profile ID
+                    <input
+                      defaultValue={shape.override?.profileId ?? "profile:default"}
+                      onChange={(event) =>
+                        updateSuiteOverride(shape.presetId, {
+                          profileId: event.currentTarget.value,
+                          hardConstraintsText: shape.override?.hardConstraints?.join("\n") ?? ""
+                        })
+                      }
+                    />
+                  </label>
+                  <label>
+                    Extra constraints
+                    <textarea
+                      defaultValue={shape.override?.hardConstraints?.join("\n") ?? ""}
+                      onChange={(event) =>
+                        updateSuiteOverride(shape.presetId, {
+                          profileId: shape.override?.profileId ?? "profile:default",
+                          hardConstraintsText: event.currentTarget.value
+                        })
+                      }
+                    />
+                  </label>
+                </dd>
+              </div>
+            ))}
+          </div>
+          <button type="button" onClick={() => void copySuiteOverrides()}>
+            Copy env JSON
+          </button>
         </SectionCard>
       </section>
     </div>
