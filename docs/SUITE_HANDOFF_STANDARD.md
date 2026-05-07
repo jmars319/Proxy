@@ -8,6 +8,10 @@ shared shaping and tone service
 
 keep unique as a reusable module; many apps should call Proxy rather than duplicating shaping logic.
 
+## Standalone Mode
+
+Runs as a complete shaping workspace with profiles, presets, constraints, health history, and shaping previews.
+
 ## Accepted Inputs
 
 - `tenra-assembly.proxy-notice-handoff.v1` from tenra Assembly
