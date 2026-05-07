@@ -1,91 +1,79 @@
 # tenra Proxy
 
-tenra Proxy is a local-first AI layer that rewrites any upstream model output into the user's voice and enforces user-defined constraints before anything reaches them.
+tenra Proxy is a local-first AI output mediation layer. It rewrites upstream model output into a user-defined voice, applies policy constraints, and keeps final authority with the local profile and operator instead of the model provider.
 
-This repository is scaffolded as a `pnpm` monorepo with thin apps and shared packages. Capability can come from any model provider. Voice authority, validation, and policy decisions are designed to stay local-first.
+Capability can come from local rules, local models, or cloud providers. The product boundary is the controlled rewrite and validation layer between raw model output and user-facing text.
 
-## Why tenra Proxy exists
+## Operational Purpose
 
-- Upstream providers are interchangeable capability sources; the desktop app now defaults to a deterministic local provider.
-- Local profiles define tone, style, boundaries, and rewrite expectations.
-- Rewrite and validation pipelines sit between model output and the user-facing surface.
-- Local authority is the product, not an optional post-processing step.
+- Route model output through a local profile before it reaches the user.
+- Preserve tone, style, boundaries, and rewrite expectations as explicit configuration.
+- Keep provider capability interchangeable.
+- Validate generated material against local policy and escalation rules.
 
-## Platform status
+## Design Posture
 
-- `desktopapp`: primary product surface, built with Tauri + Vite + React.
-- `webapp`: secondary shell, built with Vite + React for consistency with the desktop renderer.
-- `mobileapp`: Expo scaffold for future activation; intentionally minimal in `v0`.
+- Local authority over provider authority.
+- Deterministic local provider available by default.
+- Optional Ollama and cloud provider paths behind provider boundaries.
+- Profiles, rewrite logic, policy, storage, and UI separated into shared packages.
+- Desktop-first workflow for local control and review.
 
-## Repo structure
+## Architecture
 
 ```text
 apps/
-  desktopapp/   Primary UX shell
-  webapp/       Secondary product shell
-  mobileapp/    Placeholder mobile surface
+  desktopapp/   Primary Tauri + React/Vite product surface
+  webapp/       Secondary Vite shell
+  mobileapp/    Expo scaffold for later activation
 
 packages/
-  shared-types/ Foundational primitives
-  domain/       Stable product concepts
-  api-contracts/ Shared request/response contracts
-  validation/   Zod schemas and runtime parsing
-  auth/         Minimal local user/session placeholders
-  privacy/      Redaction and data-boundary helpers
-  ui/           Shared tokens and tiny React primitives
-  config/       Branding, env parsing, feature flags
-  profiles/     Voice-profile artifacts and helpers
-  rewrite-engine/ Local rewrite pipeline seed
-  policy/       Constraints, guardrails, escalation rules
-  providers/    Local provider, optional Ollama provider, and routing abstractions
-  storage/      Local-first persistence interfaces
+  profiles/       Voice-profile artifacts and helpers
+  rewrite-engine/ Local rewrite pipeline
+  policy/         Constraints, validation, and escalation rules
+  providers/      Local, Ollama, and provider routing abstractions
+  storage/        Local-first persistence interfaces
+  domain/         Stable product concepts
+  validation/     Runtime schemas
+  privacy/        Data-boundary helpers
+  ui/             Shared presentation primitives
 ```
 
-## Local Provider Modes
+## Current State
 
-The desktop app is functional without a cloud key. By default it uses a local
-rule provider to create draft material, then runs the rewrite and validation
-pipeline locally.
+- The desktop app is the active product surface.
+- The default workflow works without a cloud key through a deterministic local provider.
+- Ollama can be configured for local model assistance.
+- Cloud provider keys remain optional capability sources.
+- Web and mobile surfaces exist but are secondary or scaffolded.
 
-Desktop pipeline runs are saved in local browser storage so useful rewrites can
-be reopened without cloud sync.
+## Deployment Posture
 
-The desktop app also supports editing the active local voice profile, importing
-profile JSON, and exporting the current profile for reuse.
+Proxy is currently a local desktop product scaffold. It should not be treated as a hosted proxy service until provider routing, secrets handling, policy enforcement, and persistence are hardened for that use case.
 
-For a local LLM, run Ollama and set:
+## Working Locally
 
 ```bash
-VITE_PROXY_PROVIDER=ollama
-VITE_PROXY_OLLAMA_BASE_URL=http://127.0.0.1:11434
-VITE_PROXY_OLLAMA_MODEL=llama3.2
+pnpm run bootstrap
+pnpm run dev:desktop
+pnpm run dev:web
+pnpm run typecheck
+pnpm run verify:all
+pnpm run doctor
 ```
 
-Cloud provider keys remain optional capability sources; they are not required
-for the local pipeline.
+For local LLM assistance, run Ollama and configure the `VITE_PROXY_OLLAMA_*` environment values.
 
-## Commands
+## Direction
 
-- `pnpm bootstrap`: checks local prerequisites and installs dependencies.
-- `pnpm check:env`: validates Node, pnpm, Rust, Cargo, and macOS toolchain availability.
-- `pnpm check:packages`: validates the required workspace apps and package manifests.
-- `pnpm dev:desktop`: runs the primary desktop app.
-- `pnpm dev:web`: runs the web shell.
-- `pnpm dev:mobile`: runs the Expo mobile app.
-- `pnpm dev:both`: runs desktop and web dev servers together.
-- `pnpm build:web`
-- `pnpm build:desktop`
-- `pnpm launch:desktop`
-- `pnpm build:mobile`
-- `pnpm lint`
-- `pnpm typecheck`
-- `pnpm verify:all`
-- `pnpm doctor`
+- Strengthen profile portability and review history.
+- Expand policy validation without hiding the operator decision path.
+- Keep provider integrations replaceable and optional.
+- Make local-first behavior the default, not a fallback.
 
-## Workflow notes
+## Related Documentation
 
-- `pnpm-workspace.yaml` uses `nodeLinker: hoisted` to keep Expo and the rest of the workspace predictable in one repo.
-- The apps are intentionally thin. Shared behavior belongs in `packages/`.
-- Desktop build output is configured without installer bundling for `v0`, so the repo can verify the Tauri app without requiring branded icon assets on day one.
-
-See `docs/REPO_MAP.md`, `docs/DEVELOPER_GUIDE.md`, and `docs/STABILITY_CHECKLIST.md` for implementation details.
+- [Developer Guide](docs/DEVELOPER_GUIDE.md)
+- [Local Service Boundary](docs/LOCAL_SERVICE_BOUNDARY.md)
+- [Repo Map](docs/REPO_MAP.md)
+- [Stability Checklist](docs/STABILITY_CHECKLIST.md)
