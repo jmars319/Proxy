@@ -31,6 +31,8 @@ type SuiteHealthResponse = {
   history?: Array<{
     checkedAt: string;
     ok: boolean;
+    endpoints?: Record<string, string>;
+    errors?: string[];
   }>;
   error?: string;
 };
@@ -236,7 +238,13 @@ export default function App() {
             {suitePresetShapes.map((shape) => (
               <div key={shape.presetId}>
                 <dt>{shape.preset.clientApp} / {shape.preset.surface}</dt>
-                <dd>{shape.result.text}</dd>
+                <dd>
+                  <strong>{shape.presetId}</strong>
+                  <p>{shape.result.text}</p>
+                  <small>
+                    Override key: {shape.presetId}; app fallback key: {shape.preset.clientApp}
+                  </small>
+                </dd>
               </div>
             ))}
           </dl>
@@ -290,16 +298,35 @@ export default function App() {
           <button type="button" onClick={() => void resetSuiteOverrides()}>
             Reset defaults
           </button>
+        </SectionCard>
+
+        <SectionCard
+          eyebrow="Health Timeline"
+          title="Saved suite health checks"
+          description="Proxy records each local suite health check so endpoint drift is visible after refresh."
+        >
           {suiteHealth?.history?.length ? (
             <dl className="detail-list">
-              {suiteHealth.history.slice(0, 3).map((entry) => (
+              {suiteHealth.history.slice(0, 10).map((entry) => (
                 <div key={entry.checkedAt}>
                   <dt>{new Date(entry.checkedAt).toLocaleString()}</dt>
-                  <dd>{entry.ok ? "healthy" : "degraded"}</dd>
+                  <dd>
+                    <strong>{entry.ok ? "healthy" : "degraded"}</strong>
+                    {entry.endpoints ? (
+                      <ul className="token-list compact">
+                        {Object.entries(entry.endpoints).map(([name, endpoint]) => (
+                          <li key={`${entry.checkedAt}-${name}`}>{name}: {endpoint}</li>
+                        ))}
+                      </ul>
+                    ) : null}
+                    {entry.errors?.length ? <small>{entry.errors.join(", ")}</small> : null}
+                  </dd>
                 </div>
               ))}
             </dl>
-          ) : null}
+          ) : (
+            <p>No suite health checks recorded yet.</p>
+          )}
         </SectionCard>
       </section>
     </div>
