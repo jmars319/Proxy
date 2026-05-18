@@ -1,4 +1,4 @@
-import defaultProfileArtifactData from "../../../profiles/default/profile.json";
+import defaultProfileArtifactData from "../../../profiles/default/profile.json" with { type: "json" };
 import type { VoiceProfile } from "@proxy/domain";
 import type { ProfileId } from "@proxy/shared-types";
 import {

@@ -5,8 +5,8 @@ import type {
   ShapeExternalOutputResponse
 } from "@proxy/api-contracts";
 import type { VoiceProfile } from "@proxy/domain";
+import { rewriteDraft } from "@proxy/rewrite-engine";
 import { validateRewrittenOutput } from "@proxy/validation";
-import { rewriteDraft } from "./index";
 
 const surfaceIntros: Record<ShapeExternalOutputRequest["surface"], string> = {
   email: "Shape this as a concise email.",

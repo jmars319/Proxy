@@ -1,13 +1,13 @@
-import defaultRewriteFixture001 from "../../../profiles/default/tests/rewrite-001.json";
-import defaultRewriteFixture002 from "../../../profiles/default/tests/rewrite-002.json";
+import defaultRewriteFixture001 from "../../../profiles/default/tests/rewrite-001.json" with { type: "json" };
+import defaultRewriteFixture002 from "../../../profiles/default/tests/rewrite-002.json" with { type: "json" };
 import type { RewriteTraceEntry } from "@proxy/domain";
 import { loadProfile } from "@proxy/profiles";
+import { rewriteDraft } from "@proxy/rewrite-engine";
 import {
   parseProfileRewriteTestFixture,
   validateRewrittenOutput,
   type ProfileRewriteTestFixtureInput
 } from "@proxy/validation";
-import { rewriteDraft } from "./index";
 
 export type ProfileRewriteTestFixture = ProfileRewriteTestFixtureInput;
 
