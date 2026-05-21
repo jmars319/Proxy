@@ -1,10 +1,14 @@
 # Module Manifest
 
-Generated from `tenra Registry/contracts/handoff-catalog.json` by `tenra Registry/scripts/generate-suite-contract-docs.mjs`.
+Generated from `tenra Hub/contracts/handoff-catalog.json` by `tenra Hub/scripts/generate-suite-contract-docs.mjs`.
 
 ## Standalone Mode
 
 Runs as a complete shaping workspace with profiles, presets, constraints, health history, and shaping previews.
+
+## Repository Path
+
+`capabilities/output/tenra Proxy`
 
 ## Required Suite Dependencies
 
