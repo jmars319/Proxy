@@ -84,7 +84,7 @@ export type SuiteHealthHistoryEntry = {
 };
 
 export function appendSuiteHealthHistory(entry: SuiteHealthHistoryEntry): SuiteHealthHistoryEntry[] {
-  let history: SuiteHealthHistoryEntry[] = [];
+  let history: SuiteHealthHistoryEntry[];
   try {
     const parsed = fs.existsSync(healthHistoryPath)
       ? (JSON.parse(fs.readFileSync(healthHistoryPath, "utf8")) as { history?: SuiteHealthHistoryEntry[] }).history
